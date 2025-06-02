@@ -12,7 +12,6 @@ istioctl-debug/
 ├── src/                        # Golang 程式碼模組根目錄
 │   └── debugtool/              # 自訂 istioctl debug 指令的 CLI 工具
 │       ├── debugtool.go        # 程式
-名稱）
 └── README.md                   # 專案說明文件與使用方式
 ```
 
