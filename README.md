@@ -14,3 +14,5 @@ deploy-istioctl-debug-pod/
 ```
 #### command
 kind load docker-image istioctl-debug:1.24.0 --name c1
+istioctl debug-tool default productpage-v1-78b88d9749-h6d4p 
+istioctl debug-tool default productpage-v1-78b88d9749-h6d4p -o /tmp/debug-info
