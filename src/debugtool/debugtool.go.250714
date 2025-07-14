@@ -22,7 +22,7 @@ func NewCommand() *cobra.Command {
         Args:  cobra.ExactArgs(2),
         RunE: func(cmd *cobra.Command, args []string) error {
             ns, pod := args[0], args[1]
-            fullPodName := fmt.Sprintf("%s.%s", pod, ns)
+            fullPodName := fmt.Sprintf("%s.%s", pod, ns) // 修正點：使用 <pod>.<namespace>
 
             // 建立 summary 檔案（如指定）
             var summaryFile *os.File
@@ -35,30 +35,6 @@ func NewCommand() *cobra.Command {
                     return fmt.Errorf("failed to create summary file: %v", err)
                 }
                 defer summaryFile.Close()
-            }
-
-            // ✅ 新增 proxy-status 查詢
-            fmt.Println("🔍 Checking proxy status for selected pod...")
-
-            proxyStatusCmd := exec.Command("istioctl", "proxy-status", "-n", ns)
-            var proxyStatusOut bytes.Buffer
-            proxyStatusCmd.Stdout = &proxyStatusOut
-            proxyStatusCmd.Stderr = os.Stderr
-
-            if err := proxyStatusCmd.Run(); err != nil {
-                fmt.Printf("⚠️  Failed to get proxy status: %v\n", err)
-            } else {
-                fmt.Println("📌 Proxy Status (filtered):")
-                scanner := bufio.NewScanner(&proxyStatusOut)
-                for scanner.Scan() {
-                    line := scanner.Text()
-                    if strings.Contains(line, pod) {
-                        fmt.Println(line)
-                        if summaryFile != nil {
-                            summaryFile.WriteString(line + "\n")
-                        }
-                    }
-                }
             }
 
             fmt.Println("🔍 Fetching available clusters for selection...")
@@ -172,4 +148,3 @@ func NewCommand() *cobra.Command {
     cmd.Flags().BoolVar(&zipOutput, "zip", false, "Zip the outputs (not yet implemented)")
     return cmd
 }
-
