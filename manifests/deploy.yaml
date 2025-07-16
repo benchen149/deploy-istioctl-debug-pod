@@ -1,13 +1,23 @@
 # istioctl-debug/deploy.yaml
 
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: istioctl-debug
+  name: istioctl-debug-1-24-0
 spec:
-  serviceAccountName: istioctl-debug
-  containers:
-  - name: istioctl
-    image: istioctl-debug:1.24.0
-    command: ["/bin/bash"]
-    args: ["-c", "sleep infinity"]
+  replicas: 1
+  selector:
+    matchLabels:
+      app: istioctl-debug
+  template:
+    metadata:
+      labels:
+        app: istioctl-debug
+    spec:
+      serviceAccountName: istioctl-debug
+      containers:
+      - name: istioctl
+        image: istioctl-debug:1-24-0
+        command: ["/bin/bash"]
+        args: ["-c", "sleep infinity"]
+
