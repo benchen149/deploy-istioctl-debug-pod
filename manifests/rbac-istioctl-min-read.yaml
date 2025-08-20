@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: istioctl-debug
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: istioctl-min-read
+rules:
+- apiGroups: [""]
+  resources:
+    - pods
+    - pods/log
+    - pods/exec
+    - services
+    - endpoints
+    - configmaps
+    - namespaces
+    - serviceaccounts
+  verbs: ["get", "list", "watch"]
+
+# ✅ 支援 istioctl proxy-status 的 istiod 連線
+- apiGroups: [""]
+  resources:
+    - pods/portforward
+  verbs: ["create"]
+
+# ✅ 支援 token 建立（如需自己領票）
+- apiGroups: [""]
+  resources:
+    - serviceaccounts/token
+  verbs: ["create"]
+
+# ✅ 若需讀取 Secret，建議僅允許 get（可後續限定 resourceNames）
+- apiGroups: [""]
+  resources:
+    - secrets
+  verbs: ["get"]
+
+# ✅ app workload 結構觀察
+- apiGroups: ["apps"]
+  resources:
+    - deployments
+    - replicasets
+    - daemonsets
+  verbs: ["get", "list", "watch"]
+
+# ✅ Istio CRDs 觀察
+- apiGroups: ["networking.istio.io"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["authentication.istio.io", "security.istio.io", "telemetry.istio.io", "extensions.istio.io"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+
+# ✅ 查閱 CRD、webhook 資訊
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["admissionregistration.k8s.io"]
+  resources:
+    - validatingwebhookconfigurations
+    - mutatingwebhookconfigurations
+  verbs: ["get", "list", "watch"]
+
+# ✅ 如有 Gateway API，保留 read 權限
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources:
+    - gateways
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: istioctl-debug-readonly-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: istioctl-min-read
+subjects:
+- kind: ServiceAccount
+  name: istioctl-debug
+  namespace: default
+
