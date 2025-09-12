@@ -1,3 +1,11 @@
+#### Prerequisites
+```
+[ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
+wget "https://github.com/istio/istio/releases/download/1.24.0/istio-1.24.0-linux-amd64.tar.gz" -O - | tar -xz
+wget -qO- https://github.com/open-cluster-management-io/clusteradm/releases/latest/download/clusteradm_linux_amd64.tar.gz | sudo tar -xvz -C /usr/local/bin/
+
+```
+
 #### Directory Structure
 ```
 deploy-istioctl-debug-pod/
@@ -14,24 +22,6 @@ deploy-istioctl-debug-pod/
 │   └── root.go                  # Patched root.go to register the debugtool command
 ├── README.md                    # Project documentation and usage instructions
 └── src                          # Source code directory for additional tooling/modules
-```
-
-#### Prerequisites
-```
-[ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
-wget "https://github.com/istio/istio/releases/download/1.24.0/istio-1.24.0-linux-amd64.tar.gz" -O - | tar -xz
-wget -qO- https://github.com/open-cluster-management-io/clusteradm/releases/latest/download/clusteradm_linux_amd64.tar.gz | sudo tar -xvz -C /usr/local/bin/
-
-```
-
-#### Others
-```
-kind load docker-image istioctl-debug:1.24.0 --name c1
-istioctl debugtool default productpage-v1-78b88d9749-h6d4p 
-istioctl debugtool default productpage-v1-78b88d9749-h6d4p -o /tmp/debug-info
-docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
-kind load docker-image istioctl-debug:1.24.0-custom-v1 --name hub
-
 ```
 
 #### Usage Examples
@@ -72,4 +62,14 @@ kubectl exec -it deploy/istioctl-debug -n default -- \
 ```
 docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
 istioctl debugtool
+```
+
+#### Others
+```
+kind load docker-image istioctl-debug:1.24.0 --name c1
+istioctl debugtool default productpage-v1-78b88d9749-h6d4p 
+istioctl debugtool default productpage-v1-78b88d9749-h6d4p -o /tmp/debug-info
+docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
+kind load docker-image istioctl-debug:1.24.0-custom-v1 --name hub
+
 ```
