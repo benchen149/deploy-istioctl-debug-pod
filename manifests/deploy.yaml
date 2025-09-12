@@ -17,7 +17,7 @@ spec:
       serviceAccountName: istioctl-debug
       containers:
       - name: istioctl
-        image: istioctl-debug:1-24-0
+        image: istioctl-debug:1.24.0-custom-v1
         command: ["/bin/bash"]
         args: ["-c", "sleep infinity"]
 
