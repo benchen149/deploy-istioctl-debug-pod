@@ -5,7 +5,7 @@ ISTIO_REPO    ?= https://github.com/istio/istio.git
 BUILD_DIR     ?= /tmp/build
 DOCKER_IMAGE  ?= istioctl-debug:$(ISTIO_VERSION)
 
-.DEFAULT_GOAL := all   # 👈 Recommended to place here; it sets "all" as the default target when running just `make`
+.DEFAULT_GOAL := all   # Recommended to place here; it sets "all" as the default target when running just `make`
 
 # === Targets ===
 
@@ -37,18 +37,18 @@ clone: check-tmp
 ## Apply custom code (copy from patches/)
 patch:
 	@if [ -d patches/debugtool ]; then \
-	  echo "📦 Applying custom patches to istioctl/cmd/debugtool ..."; \
+	  echo "Applying custom patches to istioctl/cmd/debugtool ..."; \
 	  mkdir -p $(BUILD_DIR)/istio/istioctl/cmd/debugtool; \
 	  cp -r patches/debugtool/* $(BUILD_DIR)/istio/istioctl/cmd/debugtool/; \
 	else \
-	  echo "ℹ️ No patches/debugtool directory found, skipping..."; \
+	  echo "No patches/debugtool directory found, skipping..."; \
 	fi
 
 	@if [ -f patches/root.go ]; then \
-	  echo "📝 Replacing istioctl/cmd/root.go with custom version ..."; \
+	  echo "Replacing istioctl/cmd/root.go with custom version ..."; \
 	  cp patches/root.go $(BUILD_DIR)/istio/istioctl/cmd/root.go; \
 	else \
-	  echo "ℹ️ No patches/root.go found, skipping root.go replacement..."; \
+	  echo "No patches/root.go found, skipping root.go replacement..."; \
 	fi
 
 ## Build istioctl binary

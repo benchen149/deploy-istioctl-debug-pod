@@ -5,7 +5,7 @@ wget "https://github.com/istio/istio/releases/download/1.24.0/istio-1.24.0-linux
 wget -qO- https://github.com/open-cluster-management-io/clusteradm/releases/latest/download/clusteradm_linux_amd64.tar.gz | sudo tar -xvz -C /usr/local/bin/
 
 ```
-
+---
 #### Directory Structure
 ```
 deploy-istioctl-debug-pod/
@@ -23,12 +23,10 @@ deploy-istioctl-debug-pod/
 ├── README.md                    # Project documentation and usage instructions
 └── src                          # Source code directory for additional tooling/modules
 ```
-
+---
 #### Usage Examples
 
 Below is an example workflow to build the custom `istioctl` image, load it into a Kind cluster, and run the `debugtool` command.
-
----
 
 ##### 1. Build the image
 ```
@@ -63,6 +61,8 @@ kubectl exec -it deploy/istioctl-debug -n default -- \
 docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
 istioctl debugtool
 ```
+
+---
 
 #### Others
 ```
