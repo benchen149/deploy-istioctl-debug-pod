@@ -22,6 +22,22 @@ deploy-istioctl-debug-pod/
 ├── README.md                    # Project documentation and usage instructions
 └── src                          # Source code directory for additional tooling/modules
 ```
+
+#### Build Image Workflow
+
+The Makefile automates the process of building a custom istioctl binary and packaging it into a Docker image.
+
+Targets Overview (Quick Reference)
+
+| Target / Command  | Description                                                                                                      |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Version Check** | Ensures `ISTIO_CODE_VERSION` matches the base version of `IMAGE_VERSION`; otherwise, `make` stops with an error. |
+| `make` (default)  | Runs `all`, which triggers `image` (build Docker image) and `version` (print info & cleanup).                    |
+| `make build`      | Compiles `istioctl` from source after cloning and applying patches.                                              |
+| `make image`      | Builds the Docker image with the compiled binary.                                                                |
+| `make internal`   | Runs a custom build command `mylabbuild` (falls back to `make clean` on failure).                                |
+| `make clean`      | Removes build artifacts (`/tmp/build` and `bin/`).                                                               |
+
 ---
 #### Usage Examples
 
