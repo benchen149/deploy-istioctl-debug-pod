@@ -63,12 +63,12 @@ image: build
 
 ## Build docker image - Internal build
 internal: build
-	mylabbuild
+	mylabbuild || $(MAKE) clean
 
 ## Print version
 version:
-	@echo "✅ Built image: $(DOCKER_IMAGE)"
-	@echo "🧹 Cleanup local bin/istioctl ..."
+	@echo "Built image: $(DOCKER_IMAGE)"
+	@echo "Cleanup local bin/istioctl ..."
 	rm -f bin/istioctl
 
 ## Cleanup
