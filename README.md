@@ -73,18 +73,51 @@ docker run --rm -it --entrypoint /bin/sh istioctl-debug:<IMAGE_VERSION>
 kind load docker-image istioctl-debug:<IMAGE_VERSION> --name <kind-cluster>
 
 ```
-#### flow
+
+Build Workflow
+
+The Makefile automates the process of building a custom istioctl binary and packaging it into a Docker image.
+
+Default (make) → runs all, which triggers image (build Docker image) and version (print info & cleanup).
+
+Build (make build) → compiles istioctl from source after cloning and patching.
+
+Image (make image) → builds the Docker image with the compiled binary.
+
+Internal (make internal) → uses a custom build command mylabbuild (falls back to make clean on failure).
+
+Clean (make clean) → removes build artifacts (/tmp/build and bin/).
+
+Version check → ensures ISTIO_CODE_VERSION matches the base version of IMAGE_VERSION; otherwise, make stops.
+
+Full Flow (with version check and variables)
+
 flowchart TD
 
-  ALL["all (default)"]
-  I["image (docker build)"]
-  INT["internal (mylabbuild || clean)"]
-  V["version (print & cleanup)"]
-  B["build (make istioctl + copy bin)"]
-  CL["clone (git clone/fetch)"]
-  CT["check-tmp (/tmp check)"]
-  P["patch (apply custom patches)"]
-  C["clean (remove build/bin)"]
+  subgraph Variables
+    A1[ISTIO_CODE_VERSION = 1.24.0]
+    A2[IMAGE_VERSION = 1.24.0-custom-v1]
+    A3[ISTIO_REPO = github.com/istio/istio.git]
+    A4[BUILD_DIR = /tmp/build]
+    A5[DOCKER_IMAGE = istioctl-debug:$(IMAGE_VERSION)]
+    A6[IMAGE_BASE_VERSION = IMAGE_VERSION '-' 前綴]
+  end
+
+  subgraph VersionCheck
+    VC[Check: ISTIO_CODE_VERSION == IMAGE_BASE_VERSION?]
+  end
+
+  subgraph Targets
+    ALL["all (default)"]
+    CT["check-tmp\n(/tmp exists check)"]
+    CL["clone\n(git clone/fetch istio)"]
+    P["patch\n(apply custom patches)"]
+    B["build\n(make istioctl + copy to bin)"]
+    I["image\n(docker build)"]
+    INT["internal\n(mylabbuild || make clean)"]
+    V["version\n(print image + cleanup bin)"]
+    C["clean\n(remove build/bin)"]
+  end
 
   %% Flow
   ALL --> I
@@ -95,4 +128,8 @@ flowchart TD
 
   B --> CL
   B --> P
+
   CL --> CT
+
+  VC -->|Fail| ERR["make error: version mismatch"]
+  VC -->|Pass| ALL
