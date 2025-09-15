@@ -1,11 +1,22 @@
 # === Variables ===
-ISTIO_CODE_VERSION ?= 1.24.0
-ISTIO_VERSION ?= 1.24.0-custom-v1
+ISTIO_CODE_VERSION ?= 1.25.3
+IMAGE_VERSION ?= 1.25.3-custom-v1
 ISTIO_REPO    ?= https://github.com/istio/istio.git
 BUILD_DIR     ?= /tmp/build
-DOCKER_IMAGE  ?= istioctl-debug:$(ISTIO_VERSION)
+DOCKER_IMAGE  ?= istioctl-debug:$(IMAGE_VERSION)
 
 .DEFAULT_GOAL := all   # Recommended to place here; it sets "all" as the default target when running just `make`
+
+# === Version Check ===
+# Extract the part of IMAGE_VERSION before the first "-" 
+IMAGE_BASE_VERSION := $(word 1,$(subst -, ,$(IMAGE_VERSION)))
+
+# Check if the versions are equal
+ifeq ($(ISTIO_CODE_VERSION),$(IMAGE_BASE_VERSION))
+  # If equal, continue without doing anything
+else
+  $(error ISTIO_CODE_VERSION ($(ISTIO_CODE_VERSION)) != IMAGE_VERSION base ($(IMAGE_BASE_VERSION)))
+endif
 
 # === Targets ===
 
@@ -57,14 +68,18 @@ build: clone patch
 	mkdir -p bin
 	cp $(BUILD_DIR)/istio/out/linux_amd64/istioctl bin/istioctl
 
-## Build docker image
+## Build docker image - default
 image: build
 	docker build -t $(DOCKER_IMAGE) .
 
+## Build docker image - Internal build
+internal: build
+	mylabbuild || $(MAKE) clean
+
 ## Print version
 version:
-	@echo "✅ Built image: $(DOCKER_IMAGE)"
-	@echo "🧹 Cleanup local bin/istioctl ..."
+	@echo "Built image: $(DOCKER_IMAGE)"
+	@echo "Cleanup local bin/istioctl ..."
 	rm -f bin/istioctl
 
 ## Cleanup
