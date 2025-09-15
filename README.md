@@ -29,7 +29,8 @@ Below is an example workflow to build the custom `istioctl` image, load it into 
 
 ##### 1. Build the image
 ```
-make all or make 
+- make all or make 
+- make internal
 ```
 
 ##### 2. Load the image into Kind
