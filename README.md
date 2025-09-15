@@ -29,7 +29,8 @@ Below is an example workflow to build the custom `istioctl` image, load it into 
 
 ##### 1. Build the image
 ```
-make all or make 
+- make or make all 
+- make internal
 ```
 
 ##### 2. Load the image into Kind
@@ -37,7 +38,7 @@ make all or make
 kind load docker-image istioctl-debug:1.24.0-custom-v1 --name hub
 ```
 
-##### 3. Deploy the debug pod (optional)
+##### 3. Deploy the debug pod
 ```
 kubectl apply -f rbac-istioctl-min-read.yaml
 kubectl apply -f manifests/deploy.yaml
@@ -52,12 +53,12 @@ kubectl exec -it deploy/istioctl-debug -n default -- \
 
 Save debug info to a file
 kubectl exec -it deploy/istioctl-debug -n default -- \
-  istioctl debugtool default productpage-v1-78b88d9749-h6d4p -o /tmp/debug-info
+  istioctl debugtool default <pod> -o /tmp/debug-info
 ```
 
 ##### 5. Run locally with Docker (without Kubernetes)
 ```
-docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
+docker run --rm -it --entrypoint /bin/sh istioctl-debug:<IMAGE_VERSION>
 istioctl debugtool
 ```
 
@@ -65,10 +66,10 @@ istioctl debugtool
 
 #### Others
 ```
-kind load docker-image istioctl-debug:1.24.0 --name c1
-istioctl debugtool default productpage-v1-78b88d9749-h6d4p 
-istioctl debugtool default productpage-v1-78b88d9749-h6d4p -o /tmp/debug-info
-docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
-kind load docker-image istioctl-debug:1.24.0-custom-v1 --name hub
+kind load docker-image istioctl-debug:<IMAGE_VERSION> --name c1
+istioctl debugtool default <pod>
+istioctl debugtool default <pod> -o /tmp/debug-info
+docker run --rm -it --entrypoint /bin/sh istioctl-debug:<IMAGE_VERSION>
+kind load docker-image istioctl-debug:<IMAGE_VERSION> --name <kind-cluster>
 
 ```
