@@ -1,6 +1,6 @@
 # === Variables ===
-ISTIO_CODE_VERSION ?= 1.25.3
-IMAGE_VERSION ?= 1.25.3-custom-v1
+ISTIO_CODE_VERSION ?= 1.24.0
+IMAGE_VERSION ?= 1.24.0-custom-v1
 ISTIO_REPO    ?= https://github.com/istio/istio.git
 BUILD_DIR     ?= /tmp/build
 DOCKER_IMAGE  ?= istioctl-debug:$(IMAGE_VERSION)
@@ -27,16 +27,16 @@ all: image version
 ## Check /tmp exists
 check-tmp:
 	@if [ ! -d /tmp ]; then \
-	  echo "❌ Error: /tmp directory does not exist. Please create it first."; \
+	  echo "Error: /tmp directory does not exist. Please create it first."; \
 	  exit 1; \
 	else \
-	  echo "✅ /tmp exists, continue..."; \
+	  echo "/tmp exists, continue..."; \
 	fi
 
 ## Clone istio repo (skip if already exists)
 clone: check-tmp
 	@if [ -d $(BUILD_DIR)/istio/.git ]; then \
-	  echo "🔄 Updating Istio source at $(BUILD_DIR)/istio ..."; \
+	  echo "Updating Istio source at $(BUILD_DIR)/istio ..."; \
 	  cd $(BUILD_DIR)/istio && git fetch --all && git checkout $(ISTIO_CODE_VERSION); \
 	else \
 	  mkdir -p $(BUILD_DIR) && \

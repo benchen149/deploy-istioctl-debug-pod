@@ -10,7 +10,6 @@ wget -qO- https://github.com/open-cluster-management-io/clusteradm/releases/late
 ```
 deploy-istioctl-debug-pod/
 ├── bin                          # Compiled istioctl binary (output after build)
-├── build.sh                     # Convenience script to automate the build process
 ├── Dockerfile                   # Dockerfile for packaging istioctl into a debug image
 ├── Makefile                     # Build automation (clone, patch, build, image, version, clean)
 ├── manifests                    # Kubernetes manifests for deploying istioctl-debug pod│  
