@@ -31,13 +31,12 @@ Targets Overview (Quick Reference)
 
 | Target / Command  | Description                                                                                                      |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Version Check** | Ensures `ISTIO_CODE_VERSION` matches the base version of `IMAGE_VERSION`; otherwise, `make` stops with an error. |
 | `make` (default)  | Runs `all`, which triggers `image` (build Docker image) and `version` (print info & cleanup).                    |
 | `make build`      | Compiles `istioctl` from source after cloning and applying patches.                                              |
 | `make image`      | Builds the Docker image with the compiled binary.                                                                |
 | `make internal`   | Runs a custom build command `mylabbuild` (falls back to `make clean` on failure).                                |
 | `make clean`      | Removes build artifacts (`/tmp/build` and `bin/`).                                                               |
-| **Version Check** | Ensures `ISTIO_CODE_VERSION` matches the base version of `IMAGE_VERSION`; otherwise, `make` stops with an error. |
-
 
 ---
 #### Usage Examples
