@@ -1,9 +1,9 @@
 # === Variables ===
 ISTIO_CODE_VERSION ?= 1.24.0
-ISTIO_VERSION ?= 1.24.0-custom-v1
+IMAGE_VERSION ?= 1.24.0-custom-v1
 ISTIO_REPO    ?= https://github.com/istio/istio.git
 BUILD_DIR     ?= /tmp/build
-DOCKER_IMAGE  ?= istioctl-debug:$(ISTIO_VERSION)
+DOCKER_IMAGE  ?= istioctl-debug:$(IMAGE_VERSION)
 
 .DEFAULT_GOAL := all   # Recommended to place here; it sets "all" as the default target when running just `make`
 
@@ -57,9 +57,13 @@ build: clone patch
 	mkdir -p bin
 	cp $(BUILD_DIR)/istio/out/linux_amd64/istioctl bin/istioctl
 
-## Build docker image
+## Build docker image - default
 image: build
 	docker build -t $(DOCKER_IMAGE) .
+
+## Build docker image - Internal build
+internal: build
+	mylabbuild
 
 ## Print version
 version:
