@@ -73,3 +73,26 @@ docker run --rm -it --entrypoint /bin/sh istioctl-debug:<IMAGE_VERSION>
 kind load docker-image istioctl-debug:<IMAGE_VERSION> --name <kind-cluster>
 
 ```
+#### flow
+flowchart TD
+
+  ALL["all (default)"]
+  I["image (docker build)"]
+  INT["internal (mylabbuild || clean)"]
+  V["version (print & cleanup)"]
+  B["build (make istioctl + copy bin)"]
+  CL["clone (git clone/fetch)"]
+  CT["check-tmp (/tmp check)"]
+  P["patch (apply custom patches)"]
+  C["clean (remove build/bin)"]
+
+  %% Flow
+  ALL --> I
+  ALL --> V
+
+  I --> B
+  INT --> B
+
+  B --> CL
+  B --> P
+  CL --> CT
