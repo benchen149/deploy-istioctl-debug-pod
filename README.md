@@ -46,7 +46,7 @@ Below is an example workflow to build the custom `istioctl` image, load it into 
 ##### 1. Build the image
 ```
 - make or make all 
-- make internal or  make internal USER=<USER> OWNER=<owner>
+- make mylab or  make mylab USER=<USER> OWNER=<owner>
 ```
 
 ##### 2. Load the image into Kind
