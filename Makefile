@@ -4,6 +4,8 @@ IMAGE_VERSION ?= 1.24.0-custom-v1
 ISTIO_REPO    ?= https://github.com/istio/istio.git
 BUILD_DIR     ?= /tmp/build
 DOCKER_IMAGE  ?= istioctl-debug:$(IMAGE_VERSION)
+USER          ?= 
+OWNER         ?= 
 
 .DEFAULT_GOAL := all   # Recommended to place here; it sets "all" as the default target when running just `make`
 
@@ -72,9 +74,17 @@ build: clone patch
 image: build
 	docker build -t $(DOCKER_IMAGE) .
 
-## Build docker image - Internal build
+## Switch to user account and run internal build
+switch-user: 	
+	sudo -u $(USER) bash -c "echo 'Now running as user...'; make internal OWNER=$(USER)"
+
+## Build docker image - Internal build (requires OWNER)
 internal: build
-	mylabbuild || $(MAKE) clean
+	@if [ -z "$(OWNER)" ]; then \
+	  echo "❌ Error: OWNER is not defined. Please run with 'make internal OWNER=<ownername>'"; \
+	  exit 1; \
+	fi
+	/usr/local/mylab_cli/mylabbuild $(OWNER)/$(DOCKER_IMAGE)
 
 ## Print version
 version:
