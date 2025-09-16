@@ -35,7 +35,7 @@ Targets Overview (Quick Reference)
 | `make` (default)  | Runs `all`, which triggers `image` (build Docker image) and `version` (print info & cleanup).                    |
 | `make build`      | Compiles `istioctl` from source after cloning and applying patches.                                              |
 | `make image`      | Builds the Docker image with the compiled binary.                                                                |
-| `make internal`   | Runs a custom internal build command (falls back to `make clean` on failure).                                |
+| `make mylab`        | Runs a custom lab build command (falls back to `make clean` on failure).                                |
 | `make clean`      | Removes build artifacts (`/tmp/build` and `bin/`).                                                               |
 
 ---
