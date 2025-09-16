@@ -79,7 +79,7 @@ switch-user:
 	sudo -u $(USER) bash -c "echo 'Now running as user...'; make internal OWNER=$(USER)"
 
 ## Build docker image - Internal build (requires OWNER)
-internal: build
+mylab: build
 	@if [ -z "$(OWNER)" ]; then \
 	  echo "❌ Error: OWNER is not defined. Please run with 'make internal OWNER=<ownername>'"; \
 	  exit 1; \
