@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [Released]
 
 ### Improvements (AI Assisted by GPT-5 Code)
 - **Project Structure**
