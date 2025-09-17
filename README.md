@@ -124,5 +124,3 @@ istioctl debugtool default <pod> -o /tmp/debug-info
 - For internal builds (make mylab), remember to set OWNER=<your-dockerhub-org>.
 
 - This project has been reviewed and optimized with the help of **GPT-5 Code**, covering project structure, Makefile workflow, and documentation clarity.
-
-- For detailed improvements, see [CHANGELOG.md](./CHANGELOG.md).
