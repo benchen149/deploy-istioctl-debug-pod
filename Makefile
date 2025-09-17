@@ -26,6 +26,13 @@ endif
 
 all: image version
 
+# === Root Check ===
+ifeq ($(shell id -u),0)
+  # Already root, continue
+else
+  $(error ❌ Please run this Makefile as root (use: sudo make ...))
+endif
+
 ## Check /tmp exists
 check-tmp:
 	@if [ ! -d /tmp ]; then \
@@ -74,7 +81,7 @@ build: clone patch
 image: build
 	docker build -t $(DOCKER_IMAGE) .
 
-## Switch to user account and run internal build
+## Switch to user account
 switch-user: 	
 	sudo -u $(USER) bash -c "echo 'Now running as user...'; make internal OWNER=$(USER)"
 
