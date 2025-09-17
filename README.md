@@ -122,3 +122,9 @@ istioctl debugtool default <pod> -o /tmp/debug-info
 - Use make help to see available targets and quick usage hints.
 
 - For internal builds (make mylab), remember to set OWNER=<your-dockerhub-org>.
+
+---
+
+## 🤖 AI Assisted
+
+The Makefile and README have been refined using **GPT-5 Code** for better clarity and developer experience.
