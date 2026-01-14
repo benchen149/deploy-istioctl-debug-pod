@@ -53,8 +53,7 @@ import (
 	"istio.io/istio/pkg/collateral"
 	"istio.io/istio/pkg/config/constants"
 	"istio.io/istio/pkg/log"
-	"istio.io/istio/tools/bug-report/pkg/bugreport"
-	// "istio.io/istio/istioctl/cmd/helloworld"
+	"istio.io/istio/tools/bug-report/pkg/bugreport"	
 	"istio.io/istio/istioctl/cmd/debugtool"
 )
 
@@ -270,9 +269,7 @@ debug and diagnose their Istio mesh.
 	}
 
 	// 子指令集中註冊
-    rootCmd.AddCommand(
-        // 👇 你可以加在這裡
-        // helloworld.NewCommand(),
+    rootCmd.AddCommand(        
 		debugtool.NewCommand(),
     )
 
