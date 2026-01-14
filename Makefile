@@ -22,6 +22,16 @@ else
   $(error ❌ Version mismatch: ISTIO_CODE_VERSION ($(ISTIO_CODE_VERSION)) != IMAGE_VERSION base ($(IMAGE_BASE_VERSION)))
 endif
 
+PATCH_ROOT_GO := patches/root.go
+# Versions that require special root.go patch
+# SPECIAL_ROOT_GO_VERSIONS := 1.13.5 1.14.3
+SPECIAL_ROOT_GO_VERSIONS := 1.13.5
+
+
+ifneq ($(filter $(ISTIO_CODE_VERSION),$(SPECIAL_ROOT_GO_VERSIONS)),)
+PATCH_ROOT_GO := patches/root.go-$(ISTIO_CODE_VERSION)
+endif
+
 # ============================================================
 # Phony Targets
 # ============================================================
@@ -69,13 +79,21 @@ check-tmp:
 clone: check-tmp
 	@if [ -d $(BUILD_DIR)/istio/.git ]; then \
 	  echo "🔄 Updating Istio source at $(BUILD_DIR)/istio ..."; \
-	  cd $(BUILD_DIR)/istio && git fetch --all && git checkout $(ISTIO_CODE_VERSION); \
+          echo "    ↳ target version: $(ISTIO_CODE_VERSION)"; \
+          cd $(BUILD_DIR)/istio && \
+	  git reset --hard HEAD && \
+	  git fetch --all && \
+	  echo "    ↳ switching to: $(ISTIO_CODE_VERSION)"; \
+	  git checkout $(ISTIO_CODE_VERSION); \
+	  git --no-pager log -1 --oneline; \
 	else \
 	  echo "⬇️  Cloning Istio repo into $(BUILD_DIR)/istio ..."; \
+	  echo "    ↳ target version: $(ISTIO_CODE_VERSION)"; \
 	  mkdir -p $(BUILD_DIR) && \
 	  cd $(BUILD_DIR) && \
 	  git clone $(ISTIO_REPO) istio && \
 	  cd istio && git checkout $(ISTIO_CODE_VERSION); \
+	  git --no-pager log -1 --oneline; \
 	fi
 
 patch:
@@ -88,7 +106,9 @@ patch:
 	fi
 	@if [ -f patches/root.go ]; then \
 	  echo "📂 Replacing istioctl/cmd/root.go ..."; \
-	  cp patches/root.go $(BUILD_DIR)/istio/istioctl/cmd/root.go; \
+	  echo "    ↳ source: $(PATCH_ROOT_GO)"; \
+	  echo "    ↳ target: $(BUILD_DIR)/istio/istioctl/cmd/root.go"; \
+	  cp $(PATCH_ROOT_GO) $(BUILD_DIR)/istio/istioctl/cmd/root.go; \
 	else \
 	  echo "ℹ️  No patches/root.go found, skipping..."; \
 	fi
