@@ -114,6 +114,9 @@ kind load docker-image istioctl-debug:<IMAGE_VERSION> --name <kind-cluster>
 istioctl debugtool default <pod>
 istioctl debugtool default <pod> -o /tmp/debug-info
 
+# all rollback 
+git restore .
+
 ```
 
 # Tips
