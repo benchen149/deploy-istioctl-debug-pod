@@ -17,31 +17,18 @@ func NewCommand() *cobra.Command {
 	var zipOutput bool
 
 	cmd := &cobra.Command{
-		Use:   "debugtool <namespace> <podname> | debugtool <podname>.<namespace>",
+		Use:   "debugtool <namespace> <podname>",
 		Short: "Query proxy-config outputs for a given pod",
-		Args:  cobra.RangeArgs(1, 2),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ns, pod := args[0], args[1]
 
-			var ns, pod string
-
-			if len(args) == 2 {
-				ns = args[0]
-				pod = args[1]
-			} else {
-				if !strings.Contains(args[0], ".") {
-					return fmt.Errorf(
-						"invalid argument format, expected <namespace> <podname> or <podname>.<namespace>",
-					)
-				}
-				parts := strings.SplitN(args[0], ".", 2)
+			if strings.Contains(pod, ".") {
+				parts := strings.SplitN(pod, ".", 2)
 				pod = parts[0]
 				ns = parts[1]
-				fmt.Printf(
-					"⚠️  Detected pod name with namespace, parsed as namespace=%s, pod=%s\n",
-					ns, pod,
-				)
+				fmt.Printf("⚠️ 偵測到 podname 帶有 namespace，解析為 namespace=%s, pod=%s\n", ns, pod)
 			}
-
 			fullPodName := fmt.Sprintf("%s.%s", pod, ns)
 
 			var summaryFile *os.File
@@ -77,7 +64,7 @@ func NewCommand() *cobra.Command {
 				}
 			}
 
-			// proxy-config cluster (table)
+			// proxy-config cluster (表格)
 			fmt.Println("🔍 Fetching available clusters for selection...")
 			clusterCmd := exec.Command("istioctl", "proxy-config", "cluster", "-n", ns, fullPodName)
 			var clusterOut bytes.Buffer
@@ -86,7 +73,7 @@ func NewCommand() *cobra.Command {
 			if err := clusterCmd.Run(); err != nil {
 				return fmt.Errorf("failed to get clusters: %v", err)
 			}
-			fmt.Print(clusterOut.String())
+			fmt.Print(clusterOut.String()) // 同步印出表格內容
 
 			if outputDir != "" {
 				path := filepath.Join(outputDir, "cluster.txt")
@@ -100,7 +87,7 @@ func NewCommand() *cobra.Command {
 				}
 			}
 
-			// parse outbound clusters
+			// 解析 outbound clusters
 			type serviceEntry struct {
 				FQDN string
 				Port string
@@ -143,9 +130,6 @@ func NewCommand() *cobra.Command {
 			fmt.Printf("✅ Selected FQDN: %s\n", fqdn)
 			fmt.Printf("✅ Using cluster: %s\n\n", cluster)
 
-			// ======================
-			// proxy-config commands
-			// ======================
 			cmds := []struct {
 				args     []string
 				jsonOut  bool
@@ -153,9 +137,7 @@ func NewCommand() *cobra.Command {
 			}{
 				{[]string{"proxy-config", "listeners", "-n", ns, pod}, false, "listeners.txt"},
 				{[]string{"proxy-config", "listeners", fullPodName, "--port", "15001", "-o", "json"}, true, "listeners-15001.json"},
-				{[]string{"proxy-config", "routes", fullPodName}, false, "routes.txt"},
-				{[]string{"proxy-config", "routes", fullPodName, "-o", "json"}, true, "routes.json"},
-			    {[]string{"proxy-config", "cluster", fullPodName, "--fqdn", fqdn, "-o", "json"}, true, fmt.Sprintf("cluster-%s.json", strings.ReplaceAll(fqdn, ".", "_"))},
+				{[]string{"proxy-config", "cluster", fullPodName, "--fqdn", fqdn, "-o", "json"}, true, fmt.Sprintf("cluster-%s.json", strings.ReplaceAll(fqdn, ".", "_"))},
 				{[]string{"proxy-config", "endpoints", fullPodName, "--cluster", cluster}, false, "endpoints.txt"},
 			}
 
@@ -175,8 +157,10 @@ func NewCommand() *cobra.Command {
 					continue
 				}
 
+				// CLI 同步印出
 				fmt.Print(buf.String())
 
+				// 寫入檔案
 				if outputDir != "" && c.filename != "" {
 					path := filepath.Join(outputDir, c.filename)
 					if err := os.WriteFile(path, buf.Bytes(), 0644); err != nil {
@@ -188,6 +172,7 @@ func NewCommand() *cobra.Command {
 						}
 					}
 
+					// 額外複製 cluster.json
 					if strings.HasPrefix(c.filename, "cluster-") {
 						altPath := filepath.Join(outputDir, "cluster.json")
 						if err := os.WriteFile(altPath, buf.Bytes(), 0644); err != nil {
