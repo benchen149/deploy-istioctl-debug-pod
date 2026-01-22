@@ -1,8 +1,8 @@
 # ============================================================
 # Variables (can be overridden via environment or CLI)
 # ============================================================
-ISTIO_CODE_VERSION ?= 1.24.0
-IMAGE_VERSION      ?= 1.24.0-custom-v1
+ISTIO_CODE_VERSION ?= 1.13.5
+IMAGE_VERSION      ?= 1.13.5-custom-v2
 ISTIO_REPO         ?= https://github.com/istio/istio.git
 BUILD_DIR          ?= /tmp/build
 DOCKER_IMAGE       ?= istioctl-debug:$(IMAGE_VERSION)

@@ -25,11 +25,9 @@ func NewCommand() *cobra.Command {
 			var ns, pod string
 
 			if len(args) == 2 {
-				// debugtool <namespace> <podname>
 				ns = args[0]
 				pod = args[1]
 			} else {
-				// debugtool <podname>.<namespace>
 				if !strings.Contains(args[0], ".") {
 					return fmt.Errorf(
 						"invalid argument format, expected <namespace> <podname> or <podname>.<namespace>",
@@ -145,6 +143,9 @@ func NewCommand() *cobra.Command {
 			fmt.Printf("✅ Selected FQDN: %s\n", fqdn)
 			fmt.Printf("✅ Using cluster: %s\n\n", cluster)
 
+			// ======================
+			// proxy-config commands
+			// ======================
 			cmds := []struct {
 				args     []string
 				jsonOut  bool
@@ -152,7 +153,9 @@ func NewCommand() *cobra.Command {
 			}{
 				{[]string{"proxy-config", "listeners", "-n", ns, pod}, false, "listeners.txt"},
 				{[]string{"proxy-config", "listeners", fullPodName, "--port", "15001", "-o", "json"}, true, "listeners-15001.json"},
-				{[]string{"proxy-config", "cluster", fullPodName, "--fqdn", fqdn, "-o", "json"}, true, fmt.Sprintf("cluster-%s.json", strings.ReplaceAll(fqdn, ".", "_"))},
+				{[]string{"proxy-config", "routes", fullPodName}, false, "routes.txt"},
+				{[]string{"proxy-config", "routes", fullPodName, "-o", "json"}, true, "routes.json"},
+			    {[]string{"proxy-config", "cluster", fullPodName, "--fqdn", fqdn, "-o", "json"}, true, fmt.Sprintf("cluster-%s.json", strings.ReplaceAll(fqdn, ".", "_"))},
 				{[]string{"proxy-config", "endpoints", fullPodName, "--cluster", cluster}, false, "endpoints.txt"},
 			}
 
