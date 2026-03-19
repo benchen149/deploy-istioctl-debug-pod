@@ -87,3 +87,26 @@ jobs:
               body: `Auto-generated from issue #${context.issue.number}.\n\nPlease review before merging.`,
               draft: true
             })
+      - name: Cleanup old AI branches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const prefix = `ai/issue-${issueNumber}-readme-`;
+
+            const branches = await github.rest.repos.listBranches({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            for (const b of branches.data) {
+              if (b.name.startsWith(prefix)) {
+                console.log(`Deleting old branch: ${b.name}`);
+                await github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: `heads/${b.name}`
+                });
+              }
+            }
