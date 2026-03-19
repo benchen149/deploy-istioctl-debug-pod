@@ -1,0 +1,29 @@
+name: AI Plan from Issue
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  ai-plan:
+    runs-on: ubuntu-latest
+
+    if: contains(github.event.issue.labels.*.name, 'ai')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install openai
+
+      - name: Run AI Plan
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_PROMPT_ID: ${{ secrets.OPENAI_PROMPT_ID }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python .github/scripts/ai_plan.py > ai-plan.md
