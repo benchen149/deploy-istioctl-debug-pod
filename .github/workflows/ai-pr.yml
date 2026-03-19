@@ -10,118 +10,56 @@ permissions:
   issues: write
 
 jobs:
-  ai-pr:
+  ai-readme-pr:
+    if: contains(github.event.issue.labels.*.name, 'ai')
     runs-on: ubuntu-latest
 
-    if: contains(github.event.issue.labels.*.name, 'ai-pr')
-
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install --upgrade openai
+      - name: Install deps
+        run: pip install openai
 
-      - name: Generate updated README
+      - name: Generate AI content
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_PROMPT_ID: ${{ secrets.OPENAI_PROMPT_ID }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-          REPO_NAME: ${{ github.repository }}
         run: |
-          python .github/scripts/ai_update_readme.py > README.new.md
+          python .github/scripts/ai_plan.py > README.md
 
-      - name: Check for README changes
-        id: diffcheck
+      - name: Commit and push branch
         run: |
-          if cmp -s README.md README.new.md; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Comment no changes
-        if: steps.diffcheck.outputs.changed == 'false'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: "AI 已分析此 issue，但判斷目前不需要更新 README，所以這次沒有建立 PR。"
-            });
-
-      - name: Stop when no changes
-        if: steps.diffcheck.outputs.changed == 'false'
-        run: exit 0
-
-      - name: Prepare branch and commit
-        if: steps.diffcheck.outputs.changed == 'true'
-        env:
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          BRANCH="ai/issue-${ISSUE_NUMBER}-readme"
-          echo "BRANCH_NAME=$BRANCH" >> $GITHUB_ENV
-
-          mv README.new.md README.md
-
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          BRANCH="ai/issue-${{ github.event.issue.number }}-readme-${{ github.run_id }}"
           git checkout -b "$BRANCH"
+
           git add README.md
-          git commit -m "docs: update README for issue #${ISSUE_NUMBER}"
+          git commit -m "docs: update README for issue #${{ github.event.issue.number }}" || exit 0
           git push origin "$BRANCH"
 
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+
       - name: Create draft PR
-        if: steps.diffcheck.outputs.changed == 'true'
-        id: createpr
         uses: actions/github-script@v7
-        env:
-          BRANCH_NAME: ${{ env.BRANCH_NAME }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
         with:
           script: |
-            const pr = await github.rest.pulls.create({
+            await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `[AI] README update for issue #${process.env.ISSUE_NUMBER}: ${process.env.ISSUE_TITLE}`,
-              head: process.env.BRANCH_NAME,
-              base: 'main',
-              body: [
-                `Auto-generated from issue #${process.env.ISSUE_NUMBER}.`,
-                ``,
-                `This PR only updates README.md for safe review.`,
-                `Please review before merging.`
-              ].join('\n'),
+              title: `[AI] README update for issue #${context.issue.number}`,
+              head: process.env.BRANCH,
+              base: "main",
+              body: `Auto-generated from issue #${context.issue.number}.\n\nPlease review before merging.`,
               draft: true
-            });
-
-            core.setOutput('pr_number', String(pr.data.number));
-            core.setOutput('pr_url', pr.data.html_url);
-
-      - name: Comment PR back to issue
-        if: steps.diffcheck.outputs.changed == 'true'
-        uses: actions/github-script@v7
-        env:
-          PR_URL: ${{ steps.createpr.outputs.pr_url }}
-          PR_NUMBER: ${{ steps.createpr.outputs.pr_number }}
-        with:
-          script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `AI 已建立 Draft PR：#${process.env.PR_NUMBER}\n${process.env.PR_URL}`
-            });
+            })
