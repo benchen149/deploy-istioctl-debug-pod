@@ -1,159 +1,132 @@
 ## 1. Summary
 
-This issue is a **documentation improvement task** focused on making local development and workflow testing easier for contributors.
+This issue is a **documentation improvement task** for the repository README, focused on making local development and workflow testing usable without tribal knowledge.
 
-The README should be updated to clearly document:
+Because the repository contents were not provided, the safest implementation plan is to:
+- inspect the current README and GitHub Actions/workflow files,
+- document the **actual local run path**,
+- document **how to test the workflow** (locally if supported, otherwise via branch/PR/manual dispatch),
+- document **required secrets and how to provide them safely**,
+- add a **small troubleshooting section** for the most common setup/runtime failures.
 
-- **How to run the project locally**
-- **How to test the GitHub workflow locally / before pushing**
-- **What secrets or environment variables are required**
-- **Basic troubleshooting for common setup and execution failures**
-
-Because the repository contents were not provided, the plan below is written to be **implementation-ready but repo-agnostic**. It should be adjusted to match the actual project type, entrypoints, and CI workflow files.
+The main risk is documenting commands or secrets incorrectly if the repo’s runtime model is not first verified.
 
 ---
 
 ## 2. Implementation plan
 
-### A. Review current repo structure and CI workflow
-Before editing docs, confirm the actual execution paths.
+### A. Inspect the repository before editing
+Validate how this repo is intended to run.
 
-Validate:
-- Primary runtime:
-  - Node / Python / Go / Docker / composite action / shell scripts
-- Local entrypoint:
-  - `Makefile`, `package.json`, `Dockerfile`, `scripts/*`, etc.
-- Workflow files:
-  - `.github/workflows/*.yml`
-- Existing env/secrets usage:
-  - `secrets.*` in workflows
-  - `.env`, `.env.example`, config files
-  - code references like `process.env.*`, `os.Getenv`, `${{ secrets.* }}`
+Check:
+- `README.md`
+- `.github/workflows/*.yml`
+- `action.yml` / `action.yaml` / `Dockerfile` / `package.json` / `Makefile` / `scripts/*`
+- any test framework config: `pytest.ini`, `go.mod`, `tox.ini`, `package-lock.json`, etc.
+- existing docs under `docs/`
 
 Goal:
-- Avoid documenting commands that don’t exist
-- Avoid listing secrets incorrectly
-- Keep README aligned with actual CI behavior
+- determine whether this is:
+  - a GitHub Action repository,
+  - a workflow/template repository,
+  - an app/service with CI workflows,
+  - or a composite/container action.
 
----
-
-### B. Add a dedicated README section structure
-Update README with clear sections in this order:
-
-1. **Prerequisites**
-2. **Run locally**
-3. **Test the workflow**
-4. **Required secrets / environment variables**
-5. **Troubleshooting**
-
-This keeps the most important contributor tasks easy to find.
-
----
-
-### C. Document local run instructions
-Add exact commands for the supported local path.
-
-Examples depending on repo type:
-- `make run`
-- `npm install && npm test`
-- `pip install -r requirements.txt && pytest`
-- `docker build` / `docker run`
-- running a script directly
+### B. Add a “Run locally” section
+Document the minimal local setup required.
 
 Include:
-- required tool versions
-- install/setup step
-- startup command
-- test command
-- expected success output if possible
-
-Important:
-- If there are multiple ways to run locally, document the **recommended path first**
-- If the workflow depends on containers or GitHub Actions context, note that local execution may be partial
-
----
-
-### D. Document workflow testing approach
-If this repo uses GitHub Actions, README should explain how to validate the workflow before opening a PR.
-
-Recommended documentation areas:
-- **Normal validation path**
-  - run lint/test/unit checks locally
-- **Workflow emulation path** if supported
-  - use `act`
-- **Manual trigger path**
-  - `workflow_dispatch`, branch push, or PR validation
-
-Suggested content:
-- Which workflow file to test
-- Which jobs are safe to run locally
-- Which jobs require GitHub-hosted runners or real repo secrets
-- How to supply secrets for local workflow testing
-
-If the repo is a GitHub Action itself:
-- document how to test the action from:
-  - a sample workflow in this repo
-  - a separate test repo
-  - `act` if compatible
-
----
-
-### E. Add a secrets matrix/table
-README should explicitly list all required secrets and whether each is:
-- required for local run
-- required for CI only
-- optional
-- safe to replace with dummy values for dry-run testing
+- prerequisites
+  - runtime/tool versions
+  - package manager
+  - Docker if needed
+  - GitHub CLI / `act` if workflow-local execution is supported
+- install/setup steps
+- environment variable or `.env` expectations
+- exact local run command(s)
+- expected success output
 
 Recommended format:
+1. Clone repo
+2. Install dependencies
+3. Export env vars / create `.env`
+4. Run command
+5. Verify result
 
-| Name | Required | Used for | Local testing | Notes |
-|------|----------|----------|---------------|-------|
+### C. Add a “Test the workflow” section
+This should cover how contributors verify changes before merging.
 
-Examples:
-- `GITHUB_TOKEN`
-- cloud credentials
-- API keys
-- webhook secrets
-- package registry tokens
+Possible approaches depending on repo type:
+- **If GitHub Actions workflow repo**:
+  - test with `workflow_dispatch`
+  - test from feature branch / PR
+  - optionally test locally with `nektos/act` if compatible
+- **If GitHub Action repo**:
+  - explain how to test the action from a sample workflow in `.github/workflows/`
+  - document required inputs/secrets
+- **If normal app repo**:
+  - explain unit/integration test commands plus CI trigger behavior
 
-Also clarify:
-- where to set them:
-  - GitHub repo secrets
-  - local `.env`
-  - exported shell env vars
-  - `act --secret` or `.secrets`
-- whether least-privilege tokens are sufficient
+Important:
+- clearly separate:
+  - local test path,
+  - CI test path,
+  - manual workflow trigger path.
 
----
+### D. Add a “Required secrets” section
+This is the most operationally important part.
 
-### F. Add troubleshooting section
-Keep it short and practical. Focus on likely contributor problems.
+Document:
+- secret name
+- whether it is required or optional
+- what it is used for
+- where it must be configured:
+  - repo secrets
+  - org secrets
+  - environment secrets
+- whether a local `.env` equivalent is supported
+- minimum permissions/scope required
 
-Suggested topics:
-- missing dependencies / wrong tool version
-- workflow fails locally due to missing secrets
-- `act` incompatibility with some runners/services
-- Docker daemon not running
-- permissions issues on scripts
-- rate limits / authentication failures
-- differences between local environment and GitHub runner behavior
+Use a table like:
 
-Each item should include:
+| Secret | Required | Used by | Local equivalent | Notes |
+|---|---|---|---|---|
+
+Also add:
+- a warning not to commit secrets
+- whether dummy/test credentials can be used locally
+
+### E. Add a simple troubleshooting section
+Keep it short and practical.
+
+Target the failures contributors actually hit:
+- missing secret / auth failure
+- dependency install failure
+- wrong tool/runtime version
+- local workflow runner limitations (`act`, Docker, unsupported services)
+- branch trigger not firing
+- permissions/token scope issues
+
+Structure:
 - symptom
 - likely cause
 - fix
 
----
+### F. Keep README changes scoped
+Do not turn this into a broad docs rewrite.
 
-### G. Optional but strongly recommended repo improvements
-If not already present, add:
-- `.env.example`
-- `Makefile` targets like `make run`, `make test`, `make ci-local`
-- README links to workflow files
-- a small sample command for dry-run testing
+Limit changes to:
+- quickstart/local run
+- workflow testing
+- secrets
+- troubleshooting
 
-These reduce future doc drift.
+### G. Validate the documentation after editing
+After README changes:
+- execute every documented command once
+- test both “happy path” and one failure mode
+- confirm secret names exactly match workflow/action definitions
+- verify headings and links render correctly in GitHub markdown
 
 ---
 
@@ -162,223 +135,213 @@ These reduce future doc drift.
 ### Primary
 - `README.md`
 
-### Likely supporting files
-Depending on repo state, these may also need updates:
-
+### Likely supporting files to inspect or update
+Depending on repo structure:
 - `.github/workflows/*.yml`
-  - if README references manual triggers or local-testable jobs that do not yet exist
-- `.env.example`
-  - if secrets/env vars are currently undocumented
+  - confirm actual triggers, inputs, and secret names
+- `action.yml` or `action.yaml`
+  - if this is a GitHub Action repo
 - `Makefile`
-  - if standard local/test commands do not exist and should be simplified
-- `docs/CONTRIBUTING.md`
-  - if contributor workflow docs should live outside README
-- `scripts/*`
-  - if helper scripts are needed for local workflow testing
+  - if local commands should be standardized
+- `.env.example`
+  - recommended if secrets/env vars are needed locally
+- `docs/*`
+  - only if README should link out rather than becoming too long
+- test/sample workflow file, e.g.:
+  - `.github/workflows/test-action.yml`
+  - `.github/workflows/ci.yml`
 
-### Best practice note
-If README becomes too long, keep:
-- **README** = quickstart
-- **CONTRIBUTING.md** = detailed local/CI workflow instructions
+### Optional additions
+If missing, consider adding:
+- `.env.example`
+- `scripts/local-test.sh`
+- `scripts/verify-readme-commands.sh`  
+Only if the repo lacks a clear, repeatable local test path.
 
 ---
 
 ## 4. Validation steps
 
-### A. Validate commands in README
-Confirm every documented command actually works from a clean checkout.
+### Documentation validation
+- Confirm all commands in README are executable as written.
+- Confirm referenced file names and workflow names exist.
+- Confirm secret names match exactly what workflows/action code expects.
+- Confirm markdown renders correctly on GitHub.
 
-Checklist:
+### Functional validation
+Run the documented flow end-to-end.
+
+#### Local run
 - clone repo
-- install prerequisites
-- run documented local setup
-- run documented test command
-- confirm expected output
+- install dependencies
+- run the documented local command
+- verify expected output/artifacts
 
----
+#### Workflow test
+Depending on repo support:
+- trigger via PR from branch, or
+- trigger via `workflow_dispatch`, or
+- run locally with `act`
 
-### B. Validate workflow testing instructions
-If using GitHub Actions:
-- confirm referenced workflow file names are correct
-- verify whether `act` works for the target jobs
-- verify required secrets are sufficient
-- document any jobs that cannot run locally
+#### Secrets validation
+- test with valid secrets
+- test with missing secret to confirm troubleshooting guidance is accurate
 
----
+### Suggested commands
+Use whatever matches the repo; examples below are placeholders until the repo is inspected:
 
-### C. Validate secret documentation
-Cross-check all secret references from:
-- workflow YAML
-- application code
-- scripts
+```bash
+# Inspect workflows and secret references
+grep -R "secrets\." .github/workflows
+grep -R "inputs\." .github/workflows action.yml . || true
 
-Ensure README does not miss:
-- required variable names
-- token scopes
-- CI-only secrets
+# Validate markdown locally if markdownlint is used
+markdownlint README.md || true
 
----
+# If using GitHub CLI to inspect workflow names
+gh workflow list
 
-### D. Validate troubleshooting steps
-Simulate or confirm common failure modes:
-- missing env var
-- invalid token
-- wrong runtime version
-- Docker unavailable
-- permission denied on scripts
+# If workflow_dispatch exists
+gh workflow run <workflow-name> --ref <branch>
 
-Troubleshooting entries should map to real failure messages where possible.
-
----
-
-### E. Peer review / contributor review
-Have someone unfamiliar with the repo follow README from scratch and report:
-- unclear steps
-- missing assumptions
-- outdated commands
-
-This is the fastest way to find doc gaps.
+# If act is supported
+act -l
+act workflow_dispatch
+```
 
 ---
 
 ## 5. README update suggestions
 
-Below is a suggested README structure you can implement.
+Below is the recommended README structure.
 
-### Suggested section layout
+### Suggested sections to add
 
+#### `## Run locally`
+Content should include:
+- prerequisites
+- setup/install
+- environment variables / `.env`
+- run command
+- expected output
+
+Example structure:
 ```md
-## Prerequisites
-
-- Tool A >= X.Y
-- Docker (if required)
-- GitHub CLI / act (optional for workflow testing)
-
 ## Run locally
 
-1. Clone the repository
-2. Install dependencies
-3. Configure environment variables
-4. Start the app / run the script
+### Prerequisites
+- <tool> >= <version>
+- Docker (if required)
+- <language runtime>
+
+### Setup
+```bash
+git clone <repo>
+cd <repo>
+<install command>
+cp .env.example .env   # if supported
+```
+
+### Run
+```bash
+<local run command>
+```
+
+Expected result:
+- <what success looks like>
+```
+
+#### `## Test the workflow`
+Content should explain:
+- how to trigger in GitHub
+- whether local execution with `act` is supported
+- branch/PR testing flow
+- sample workflow inputs if applicable
+
+Example structure:
+```md
+## Test the workflow
+
+### Option 1: Test in GitHub
+1. Push a branch
+2. Open a PR or use workflow_dispatch
+3. Check the Actions tab for the run
+
+### Option 2: Test locally with act
+> Supported only for workflows that do not depend on unsupported GitHub-hosted features.
+
+```bash
+act -l
+act workflow_dispatch -s <SECRET_NAME>=test-value
+```
+```
+
+#### `## Required secrets`
+Use a table.
 
 Example:
-```bash
-cp .env.example .env
-# edit .env
-make run
-```
-
-## Test locally
-
-Run the standard checks before pushing:
-
-```bash
-make test
-make lint
-```
-
-## Test the GitHub workflow
-
-If the repository uses GitHub Actions, you can test supported jobs locally with `act`:
-
-```bash
-act pull_request -W .github/workflows/<workflow-file>.yml \
-  --secret-file .secrets
-```
-
-If `act` is not fully supported, use the following partial validation path instead:
-- run local unit tests
-- run lint checks
-- open a draft PR for full CI validation
-
+```md
 ## Required secrets
 
-| Name | Required | Purpose | Local | CI |
-|------|----------|---------|-------|----|
-| SECRET_NAME | Yes | Used for X | Yes/No | Yes |
-| ANOTHER_SECRET | Optional | Used for Y | Optional | Optional |
-
-## Troubleshooting
-
-### Error: missing environment variable
-Set the variable in `.env` or export it in your shell.
-
-### Error: workflow passes in GitHub but fails in `act`
-Some GitHub-hosted runner features are not fully reproduced locally. Use `act` for basic validation only and rely on CI for final verification.
-
-### Error: Docker connection failed
-Make sure Docker Desktop / daemon is running before testing the workflow locally.
+| Secret | Required | Purpose | Local usage | Notes |
+|---|---|---|---|---|
+| GITHUB_TOKEN | Yes/No | Authenticate GitHub API calls | export GITHUB_TOKEN=... | May require repo write scope |
+| <SECRET_NAME> | Yes | <purpose> | `.env` or `-s` with act | Store in repo/environment secrets |
 ```
 
----
+Also add:
+```md
+Do not commit real credentials. Use test credentials where possible.
+```
 
-### Content quality suggestions
-- Use **copy-pasteable commands**
-- Avoid vague phrases like “run the app”
-- State **exact filenames**
-- Call out **which steps are optional**
-- Mark **CI-only secrets clearly**
-- Prefer **one recommended path** over multiple alternatives
+#### `## Troubleshooting`
+Keep it short.
+
+Example:
+```md
+## Troubleshooting
+
+### Workflow does not start
+- Confirm the workflow trigger matches your event (`push`, `pull_request`, `workflow_dispatch`)
+- Confirm the branch is included in trigger filters
+
+### Authentication or secret errors
+- Verify the secret exists under repository/environment settings
+- Confirm the secret name matches the workflow exactly
+
+### Local test with `act` fails
+- Some GitHub-hosted features are not fully supported by `act`
+- Try testing with `workflow_dispatch` in GitHub instead
+```
+
+### Style recommendations
+- prefer copy-pasteable commands
+- avoid vague wording like “set up credentials”
+- explicitly name files, secrets, and commands
+- include one canonical local path, not multiple competing paths
+- if commands differ by language/runtime, keep the main path first and alternatives brief
 
 ---
 
 ## 6. Risks and rollback notes
 
 ### Risks
+- **Incorrect documentation** if workflow triggers, secret names, or local commands are assumed rather than verified.
+- **Over-documenting unsupported local workflow testing**, especially if `act` cannot emulate the workflow reliably.
+- **Exposing secret handling ambiguously**, causing contributors to misconfigure tokens or use overly broad permissions.
+- **README bloat**, making the quickstart harder to use.
 
-#### 1. README drift from actual workflow behavior
-If documentation is updated without checking current scripts/workflows, contributors will get blocked by incorrect instructions.
-
-**Mitigation**
-- Validate every command from a fresh clone
-- Tie docs to existing make/script targets where possible
-
----
-
-#### 2. Secrets documentation may expose too much detail
-Listing secret names is fine, but avoid including:
-- real values
-- privileged examples
-- unnecessary scope details that increase risk
-
-**Mitigation**
-- document names, purpose, and minimum required permissions only
-
----
-
-#### 3. Local workflow testing may be incomplete
-If using `act`, some GitHub Actions features may not behave the same locally:
-- service containers
-- GitHub-provided tokens/context
-- permissions model
-- matrix behavior in some cases
-
-**Mitigation**
-- document `act` as best-effort if needed
-- keep GitHub CI as the source of truth
-
----
-
-#### 4. README becomes too large
-If the repository has complex setup, stuffing everything into README can reduce usability.
-
-**Mitigation**
-- keep README concise
-- move advanced contributor details to `CONTRIBUTING.md`
-
----
+### Mitigations
+- derive all secret names from workflow/action definitions
+- only document local workflow testing if it actually works
+- prefer least-privilege notes for tokens/secrets
+- keep troubleshooting limited to frequent failure cases
 
 ### Rollback notes
-This is a documentation-only change, so rollback is low risk.
-
-Rollback options:
-- revert the README commit if instructions prove inaccurate
-- move advanced/unstable instructions into `CONTRIBUTING.md`
-- temporarily reduce scope to:
-  - local run
-  - secrets table
-  - minimal troubleshooting
+- README-only changes are low-risk and easy to revert with a single commit.
+- If supporting files are added (`.env.example`, scripts), revert those independently if they cause confusion.
+- If local workflow testing guidance proves inaccurate, remove that section and document GitHub-based validation only.
 
 ---
 
-If you want, I can also turn this into a **ready-to-paste PR plan** or draft a **sample README patch template** once you share the repository structure.
+If you want, I can also turn this into a **ready-to-commit README patch template** once you share the repo contents or current `README.md` and workflow files.
