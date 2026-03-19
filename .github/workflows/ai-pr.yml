@@ -2,7 +2,7 @@ name: AI README PR from Issue
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened, edited, labeled]
 
 permissions:
   contents: write
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   ai-readme-pr:
-    if: contains(github.event.issue.labels.*.name, 'ai')
+    if: contains(github.event.issue.labels.*.name, 'ai-pr') || contains(github.event.issue.labels.*.name, 'ai')
     runs-on: ubuntu-latest
 
     steps:
@@ -45,12 +45,21 @@ jobs:
           git checkout -b "$BRANCH"
 
           git add README.md
-          git commit -m "docs: update README for issue #${{ github.event.issue.number }}" || exit 0
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "HAS_CHANGES=false" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          git commit -m "docs: update README for issue #${{ github.event.issue.number }}"
           git push origin "$BRANCH"
 
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "HAS_CHANGES=true" >> $GITHUB_ENV
 
       - name: Create draft PR
+        if: env.HAS_CHANGES == 'true'
         uses: actions/github-script@v7
         with:
           script: |
