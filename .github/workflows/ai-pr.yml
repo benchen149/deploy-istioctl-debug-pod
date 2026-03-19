@@ -9,6 +9,10 @@ permissions:
   pull-requests: write
   issues: write
 
+concurrency:
+  group: ai-readme-pr-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   ai-readme-pr:
     if: contains(github.event.issue.labels.*.name, 'ai-pr') || contains(github.event.issue.labels.*.name, 'ai')
@@ -73,12 +77,37 @@ jobs:
 
           echo "HAS_CHANGES=true" >> $GITHUB_ENV
 
-      - name: Create draft PR
+      - name: Find existing PR
+        id: find_pr
         if: env.HAS_CHANGES == 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.pulls.create({
+            const headBranch = `${context.repo.owner}:${process.env.BRANCH}`;
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              head: headBranch,
+              base: "main"
+            });
+
+            if (prs.length > 0) {
+              core.setOutput("exists", "true");
+              core.setOutput("number", String(prs[0].number));
+              core.setOutput("url", prs[0].html_url);
+              console.log(`Existing PR found: ${prs[0].html_url}`);
+            } else {
+              core.setOutput("exists", "false");
+              console.log("No existing PR found.");
+            }
+
+      - name: Create draft PR
+        if: env.HAS_CHANGES == 'true' && steps.find_pr.outputs.exists == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `[AI] README update for issue #${context.issue.number}`,
@@ -86,7 +115,15 @@ jobs:
               base: "main",
               body: `Auto-generated from issue #${context.issue.number}.\n\nPlease review before merging.`,
               draft: true
-            })
+            });
+
+            console.log(`Created PR: ${pr.data.html_url}`);
+
+      - name: Reuse existing PR
+        if: env.HAS_CHANGES == 'true' && steps.find_pr.outputs.exists == 'true'
+        run: |
+          echo "PR already exists: ${{ steps.find_pr.outputs.url }}"
+
       - name: Cleanup old AI branches
         uses: actions/github-script@v7
         with:
