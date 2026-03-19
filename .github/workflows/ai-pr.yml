@@ -41,8 +41,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          BRANCH="ai/issue-${{ github.event.issue.number }}-readme-${{ github.run_id }}"
-          git checkout -b "$BRANCH"
+          BRANCH="ai/issue-${{ github.event.issue.number }}-readme"
+
+          git fetch origin
+
+          # 如果遠端已存在 → 拉下來覆蓋
+          if git ls-remote --exit-code --heads origin "$BRANCH"; then
+            echo "Branch exists, checkout from remote"
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+          else
+            echo "Branch does not exist, create new"
+            git checkout -b "$BRANCH"
+          fi
 
           git add README.md
 
@@ -53,7 +63,9 @@ jobs:
           fi
 
           git commit -m "docs: update README for issue #${{ github.event.issue.number }}"
-          git push origin "$BRANCH"
+
+          # ⭐ 關鍵：改成 force push（更新同一個 branch）
+          git push --force-with-lease origin "$BRANCH"
 
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "HAS_CHANGES=true" >> $GITHUB_ENV
