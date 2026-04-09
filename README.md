@@ -1,498 +1,549 @@
-## 1. Summary
+# 1. Summary
 
-This issue is a **documentation usability improvement** task, not a code-feature change.
+此 issue 的核心目標是：
 
-The README should be updated to:
-- make the project understandable for **Istio beginners**
-- explain **what the tool does**, **when to use it**, and **how to run it**
-- add a **local testing workflow** so contributors can validate behavior without guessing setup steps
+- **優化 README**，讓第一次接觸本專案與 **Istio debug tool** 的使用者能快速理解：
+  - 這個工具是做什麼的
+  - 何時應該用它
+  - 最基本的使用流程
+  - 常見輸入 / 輸出長什麼樣子
+- **補上本地測試流程**，讓開發者可以在沒有太多背景知識的情況下完成：
+  - 環境準備
+  - 啟動或模擬測試環境
+  - 執行測試
+  - 驗證結果
 
-The most important outcome is a README that helps a new user go from:
-**“I found this repo” → “I understand the tool” → “I can run it locally” → “I can verify it works”**
-
----
-
-## 2. Implementation plan
-
-### A. Audit current README gaps
-Review the current README for these common problems:
-- no clear **problem statement**
-- no beginner-friendly explanation of **Istio debug scenarios**
-- no **quick start**
-- examples assume prior Istio knowledge
-- no explanation of **required environment**
-- no **local test / dev workflow**
-- no notes about **supported Istio / Kubernetes versions**
-
-**Goal:** identify what a first-time user cannot infer in 2–3 minutes.
+這不是功能改動，屬於 **文件可用性改善**。  
+但對實際使用影響很大：如果 README 結構清楚，能顯著降低新手上手成本，也能減少 issue / 問答成本。
 
 ---
 
-### B. Restructure README for new-user onboarding
-Recommend reorganizing the README into this order:
+# 2. Implementation plan
 
-1. **Project overview**
-   - What this tool is
-   - What problem it solves in Istio debugging
-   - Target users: platform engineers / SRE / developers
+## A. 重構 README 結構，先解決「新手不知道從哪開始」
 
-2. **When to use this tool**
-   - Example real-world cases:
-     - traffic not reaching workload
-     - VirtualService / DestinationRule mismatch
-     - sidecar config not applied
-     - Gateway / ingress path issues
-     - mTLS / authz related confusion
+建議把 README 調整為由淺入深的結構，而不是只列功能或命令。
 
-3. **Quick start**
-   - minimal prerequisites
-   - installation
-   - first command/example
-   - expected output
+### 建議章節順序
 
-4. **How it works**
-   - high-level explanation only
-   - e.g. reads Kubernetes/Istio resources, inspects proxy config, correlates config objects
+1. **專案簡介**
+   - 1~3 句說明這個工具解決什麼問題
+   - 指出使用情境，例如：
+     - 排查 Istio sidecar / traffic routing 問題
+     - 檢查 proxy / envoy 設定
+     - 幫助定位 service mesh 行為異常
+   - 明確標示目標使用者：
+     - SRE / 平台工程師 / 開發者
+     - Istio 初學者也可使用
 
-5. **Common usage examples**
-   - “debug service-to-service traffic”
-   - “inspect gateway routing”
-   - “check sidecar/proxy config”
-   - “validate namespace / workload selection”
-   - include copy-pasteable commands
+2. **適用場景**
+   - 用具體例子替代抽象描述，例如：
+     - Pod 可以啟動，但流量異常
+     - VirtualService / DestinationRule 看起來正確，但實際路由不符合預期
+     - Sidecar 注入正常，但 upstream cluster / listener 不符合預期
+   - 這一段對新手非常重要，因為他們通常不知道「什麼時候該用這工具」。
 
-6. **Local testing workflow**
-   - setup local cluster
-   - install Istio
-   - deploy sample app
-   - run the tool locally
-   - verify expected behavior
-   - cleanup
+3. **快速開始（Quick Start）**
+   - 提供最短路徑：
+     - 安裝
+     - 最小輸入
+     - 執行指令
+     - 預期輸出
+   - 建議控制在 3~5 個步驟內
 
-7. **Troubleshooting**
-   - missing sidecar
-   - wrong kube-context
-   - version mismatch
-   - insufficient RBAC
-   - namespace not found
+4. **基本使用方式**
+   - 逐一說明常用參數 / 常見操作
+   - 例：
+     - 分析單一 Pod
+     - 分析 namespace
+     - 比對 proxy config
+     - 匯出 debug 結果
 
-8. **Compatibility / support matrix**
-   - supported Kubernetes versions
-   - supported Istio versions
-   - caveat if output/behavior depends on Envoy/Istio version
+5. **輸出結果怎麼看**
+   - 這是 README 常缺的部分
+   - 新手最常卡在「執行成功但看不懂結果」
+   - 建議列：
+     - 正常範例
+     - 異常範例
+     - 常見欄位說明
+     - 下一步該怎麼做
 
----
+6. **本地測試流程**
+   - 補上明確可執行流程
+   - 至少回答：
+     - 需要安裝什麼
+     - 怎麼啟動測試環境
+     - 怎麼跑 unit/integration/e2e 測試
+     - 怎麼清理環境
 
-### C. Add a beginner-focused “mental model”
-New users often do not know where this tool fits in the Istio debugging flow.
-
-Add a short section such as:
-
-> If `kubectl get` shows resources exist, but traffic still fails, this tool helps correlate:
-> - Kubernetes workload/service objects
-> - Istio routing objects
-> - proxy/sidecar state
-> - cluster/namespace context
-
-This is important because many Istio tools fail usability-wise when they jump directly into flags and output without explaining **why** to use them.
+7. **常見問題（FAQ / Troubleshooting）**
+   - 例如：
+     - `kubectl` context 錯誤
+     - 找不到 Istio CRD
+     - 權限不足
+     - 測試依賴 kind / k3d / minikube 但本機未安裝
+     - 版本不相容（Istio / Kubernetes）
 
 ---
 
-### D. Add local testing workflow
-This is explicitly requested in the issue.
+## B. 補上「新手導向」內容，而不是只列命令
 
-A good local test flow should include:
+README 應避免只有命令清單。建議每個核心功能用以下模板描述：
 
-#### Option 1: Kind-based local environment
-Best default if the project is CLI-oriented and should be easy for contributors.
+- **用途**：這個功能是解決什麼問題
+- **何時使用**：你遇到什麼症狀時應該用它
+- **範例命令**
+- **範例輸出**
+- **結果解讀**
+- **下一步動作**
 
-Suggested flow:
-1. Create a local Kind cluster
-2. Install Istio
-3. Deploy a known sample app
-4. Build/run the tool locally
-5. Execute one or two README commands
-6. Confirm expected output
-7. Destroy cluster
+這種寫法對 Istio 類工具特別重要，因為使用者通常不是卡在「不會執行命令」，而是卡在「不知道結果代表什麼」。
 
-If the repo already has automation, document the actual commands.
-If not, add a simple reproducible path in README first, then optionally automate later.
+---
 
-#### What the README should include
-- prerequisites:
+## C. 本地測試流程要明確區分層級
+
+如果專案有多種測試，README 建議拆成：
+
+### 1) 單元測試
+- 適合快速驗證邏輯
+- 應標示：
+  - 執行命令
+  - 預期時間
+  - 是否需要 Kubernetes / Istio 環境
+
+### 2) 整合測試
+- 若需要 mock cluster、kind、k3d 或真實 API server，要明講
+- 標示必要前置：
   - Docker
+  - kind / k3d
   - kubectl
-  - kind or minikube
   - istioctl
-  - project runtime/build tool
-- exact setup steps
-- example namespace and sample app
-- expected verification commands
-- cleanup steps
+  - 特定版本需求
+
+### 3) 手動驗證流程
+- 如果工具是 debug tool，很多時候實際價值來自「手動拿一個案例跑」
+- 建議提供最小 demo：
+  - 建立一個 namespace
+  - 部署 sample app
+  - 啟用 sidecar injection
+  - 製造一個簡單路由/設定問題
+  - 使用工具查看結果
+  - 清理資源
+
+這會比只寫 `make test` 更有幫助。
 
 ---
 
-### E. Make examples version-aware
-For Istio tools, docs become misleading quickly when version-specific behavior is not stated.
+## D. 加入版本與相容性說明
 
-Add:
-- tested Istio version(s)
-- whether output differs by Istio release
-- if relying on `istioctl`, note the importance of matching client/server versions
-- if using sample app manifests, pin to a tested version/tag
+Istio debug tool 很容易遇到版本差異問題，README 建議加一段簡短相容性說明：
 
-This avoids a common production/debugging pitfall:
-- user runs README on Istio 1.22+/1.23+ but commands/examples were written for older behavior
+- 支援的 Kubernetes 版本範圍
+- 支援的 Istio 版本範圍
+- 若部分功能依賴特定 API / `istioctl` 行為，要特別標明
+- 若尚未驗證新版本，應明講「tested with ...」
 
----
-
-### F. Add validation-oriented examples, not just syntax
-Instead of only showing:
-```bash
-tool debug foo
-```
-
-Show:
-- command
-- what it checks
-- how to read the output
-- what “healthy” vs “problematic” output means
-
-This is especially important for an Istio debug tool because users usually need help interpreting results, not just invoking the command.
+這能降低新手在本地測試時因版本不一致造成誤判。
 
 ---
 
-### G. Optionally split docs if README becomes too long
-If the README starts becoming too large:
-- keep README focused on:
-  - overview
-  - quick start
-  - common examples
-  - local test summary
-- move details into:
-  - `docs/local-testing.md`
-  - `docs/troubleshooting.md`
-  - `docs/examples.md`
+## E. 文件拆分策略
 
-**Trade-off:**
-- **Single README**: easier for first-time users
-- **Split docs**: better maintainability for deeper content
+若 README 已經很長，建議不要把所有內容都塞進首頁。
 
-**Recommendation:**  
-Keep the README self-sufficient for first-run success, and move only detailed troubleshooting or advanced examples into `/docs`.
-
----
-
-## 3. Files to modify
-
-Because the repository structure is not provided, these are the most likely files:
-
-### Required
+### 建議做法
 - `README.md`
-  - main target of the issue
-
-### Likely helpful additions
+  - 保留：專案介紹、Quick Start、最常用指令、最小本地測試入口
 - `docs/local-testing.md`
-  - if local testing steps are too long for README
+  - 詳細本地測試流程
 - `docs/troubleshooting.md`
-  - for common failure cases
+  - 常見問題
 - `docs/examples.md`
-  - if multiple usage scenarios exist
+  - 使用案例與輸出解讀
 
-### Optional, depending on repo setup
+### Trade-off
+- **全部寫 README**
+  - 優點：集中、容易找到
+  - 缺點：很快變太長
+- **README + docs 拆分**
+  - 優點：結構清楚、可維護
+  - 缺點：需要多跳一層文件
+
+### 建議
+- **最佳方案：README 保留入門內容 + docs 放細節**
+- 原因：
+  - 符合新手使用路徑
+  - 也方便後續擴充測試與故障排查文件
+
+---
+
+# 3. Files to modify
+
+以下是建議修改的檔案，實際以 repo 結構為準。
+
+## 必改
+- `README.md`
+  - 重構內容與章節
+  - 新增 Quick Start
+  - 新增本地測試入口
+  - 新增 FAQ / troubleshooting 簡述
+
+## 建議新增
+- `docs/local-testing.md`
+  - 詳細本地開發 / 測試流程
+- `docs/troubleshooting.md`
+  - 常見錯誤與排查方式
+- `docs/examples.md`
+  - 使用案例與輸出範例
+
+## 視 repo 現況可能需要同步修改
 - `Makefile`
-  - if you want documented commands like `make test-local`, `make kind-up`, `make demo`
+  - 若目前沒有一致的 test / lint / local-run 命令，建議補上
+- `scripts/`
+  - 若本地測試需要啟動 kind / 安裝 Istio / 部署 sample app，可考慮加入腳本
 - `.github/workflows/*`
-  - if you later want doc examples or local workflow validated in CI
-- `examples/` or `hack/`
-  - sample manifests/scripts used by README
+  - 若 README 要寫 CI 驗證方式，應確認 workflow 名稱與命令一致
 - `CONTRIBUTING.md`
-  - if contributor local workflow should live there instead of README
+  - 若已有貢獻文件，應同步對齊本地測試步驟，避免 README 與 CONTRIBUTING 衝突
 
 ---
 
-## 4. Validation steps
+# 4. Validation steps
 
-### A. Content validation
-Check that a new user can answer these after reading README:
-- What does this tool do?
-- When should I use it?
-- What do I need before running it?
-- What is the fastest way to try it?
-- How do I test it locally?
-- What versions are supported?
+## 文件內容驗證
 
-If any answer is unclear, README still needs work.
+### 1. 新手可讀性檢查
+找一位不熟悉本專案、但具備基本 Kubernetes/Istio 背景的人，驗證他是否能在 README 中回答以下問題：
 
----
+- 這個工具是做什麼的？
+- 我什麼時候該用它？
+- 最快怎麼執行一次？
+- 執行後結果要看哪裡？
+- 本地如何跑測試？
 
-### B. Fresh-environment validation
-Run the README from a clean environment, ideally by someone unfamiliar with the repo.
-
-Validate:
-- all commands are copy-pasteable
-- prerequisites are sufficient
-- no hidden assumptions (existing cluster, prior Istio install, preconfigured namespace)
-- sample output is realistic
+若 5 分鐘內無法回答，表示 README 還不夠清楚。
 
 ---
 
-### C. Local workflow validation
-Use the documented local test flow end-to-end:
-1. create local cluster
-2. install Istio
-3. deploy sample app
-4. build/run tool locally
-5. run documented examples
-6. verify tool output
-7. clean up
+## 指令可用性驗證
 
-If any step requires undocumented repo knowledge, fix the README.
+### 2. README 中所有命令逐條執行
+確認以下內容沒有過時：
+
+- 安裝命令可用
+- Quick Start 命令可執行
+- 測試命令可執行
+- 若引用 `make` 目標，Makefile 中實際存在
+- 若引用腳本，腳本路徑存在且可執行
 
 ---
 
-### D. Command validation
-Verify every documented command actually works against supported versions.
+## 本地測試流程驗證
 
-Typical checks:
+### 3. 從零環境驗證一次
+最好用乾淨環境驗證，例如：
+
+- 新的 dev container
+- 新 VM
+- 新 CI job
+- 新人電腦
+
+驗證流程：
+
+1. clone repo
+2. 依 README 安裝依賴
+3. 啟動本地測試環境
+4. 執行測試
+5. 看到預期結果
+6. 清理資源
+
+如果過程中有任何「需要猜」的地方，都應補回 README。
+
+---
+
+## 版本驗證
+
+### 4. 驗證版本資訊是否正確
+至少確認：
+
+- Kubernetes 版本需求是否正確
+- Istio 版本需求是否正確
+- `kubectl` / `istioctl` 最低需求是否清楚
+- Docker / kind 等外部依賴版本是否需標示
+
+---
+
+## 文件品質驗證
+
+### 5. Markdown 與連結檢查
+建議檢查：
+
+- 標題層級是否一致
+- 相對連結是否正確
+- 程式碼區塊語法是否正確
+- 中英文術語是否一致
+- 指令中的 namespace / pod / sample 名稱是否統一
+
+---
+
+## 可執行命令範例
+
+如果 repo 有對應命令，可驗證類似以下內容：
+
 ```bash
-kubectl version --short
-istioctl version
-kubectl get pods -A
+# 文件格式檢查（若有）
+markdownlint README.md docs/*.md
+
+# 專案測試（依實際語言/工具調整）
+make test
+
+# 若有 lint
+make lint
+
+# 若有本地整合測試
+make test-integration
 ```
 
-If the project is Go-based, also validate:
+若目前 repo 沒有這些命令，建議至少在文件中使用「實際存在」的命令名稱，不要先寫理想化流程。
+
+---
+
+# 5. README update suggestions
+
+以下是可直接採用的 README 更新方向。
+
+## 建議的 README 大綱
+
+```md
+# Project Name
+
+一句話說明：這是一個用來協助分析 / 排查 Istio 與 Envoy 行為的 debug tool。
+
+## Why this tool
+- 解決什麼問題
+- 適用哪些場景
+- 對誰有幫助
+
+## Quick Start
+### Prerequisites
+- kubectl
+- istioctl
+- Kubernetes cluster access
+- supported Istio version
+
+### Install
 ```bash
-go test ./...
-go run ./... --help
+# 安裝方式
 ```
 
-If it is not Go-based, replace with the repo’s real build/test commands.
-
----
-
-### E. Link / formatting validation
-Run markdown validation if available:
-- markdown lint
-- link check
-- README rendering check on GitHub
-
-Validate:
-- section links work
-- code blocks render correctly
-- tables are readable on GitHub
-- no broken internal anchors
-
----
-
-## 5. README update suggestions
-
-Below is a practical README outline you can implement.
-
----
-
-### Suggested README structure
-
-#### 1) Title + one-line description
-Example:
-> An Istio debugging tool that helps you quickly inspect routing, workload selection, and proxy-related issues in Kubernetes clusters.
-
-#### 2) Why this project exists
-Explain the user pain:
-- Istio debugging usually requires checking multiple resources:
-  - Service
-  - Pod labels
-  - VirtualService
-  - DestinationRule
-  - Gateway
-  - Sidecar/Envoy config
-- This tool reduces the time needed to correlate them
-
-#### 3) Who should use it
-- SRE / platform engineer debugging production traffic
-- developers troubleshooting service mesh config
-- newcomers learning how Istio traffic decisions are made
-
-#### 4) Quick start
-Should include:
-- prerequisites
-- install/build command
-- first example command
-- expected output
-
-Example structure:
+### Run your first debug
 ```bash
-# install / build
-<build-command>
-
-# check available commands
-<tool-command> --help
-
-# run first debug example
-<tool-command> <example-subcommand> ...
+# 最小可執行命令
 ```
 
-#### 5) Core usage examples
-Use scenario-oriented headings:
+### Expected output
+- 說明會看到什麼
+- 哪些欄位最重要
 
-- **Debug a service routing issue**
-- **Debug ingress/gateway traffic**
-- **Inspect workload / namespace selection**
-- **Check whether sidecar/proxy config is applied**
-- **Verify Istio resources related to a service**
+## Common use cases
+### Case 1: Pod traffic issue
+### Case 2: Routing mismatch
+### Case 3: Sidecar / proxy config inspection
 
-For each example, include:
-- command
-- what it checks
-- expected result
-- common failure signs
+## Local testing
+- 環境需求
+- 啟動方式
+- 測試命令
+- 清理方式
+
+## Troubleshooting
+- 常見錯誤
+- 權限與版本問題
+
+## Documentation
+- docs/local-testing.md
+- docs/troubleshooting.md
+- docs/examples.md
+```
 
 ---
 
-### Suggested “Local testing” section content
+## README 中應補的關鍵內容
 
-#### Prerequisites
-List exact tools:
+### 1. 一句話價值說明
+避免只寫工具名稱，應直接寫出價值，例如：
+
+- 幫助你快速定位 Istio / Envoy 設定與實際流量行為不一致的問題
+- 用來檢查 sidecar、listener、route、cluster 等 debug 資訊
+
+---
+
+### 2. 最小成功案例
+新手最需要的是「先跑成功一次」。
+
+建議至少提供：
+
+```bash
+# 1. 安裝
+# 2. 指定目標
+# 3. 執行
+# 4. 查看結果
+```
+
+並附一小段輸出說明：
+- 哪些是正常
+- 哪些表示異常
+
+---
+
+### 3. 本地測試流程範例
+若專案支援 kind / k3d，本地測試章節建議包含：
+
+```md
+## Local testing
+
+### Prerequisites
 - Docker
 - kubectl
-- kind or minikube
+- kind
 - istioctl
-- repo runtime/build dependency
+- Go/Node/Python/...（依專案語言）
 
-#### Example local flow
+### Setup
 ```bash
-# 1. Create cluster
-kind create cluster --name istio-debug
-
-# 2. Install Istio
-istioctl install -y
-
-# 3. Enable sidecar injection for a test namespace
-kubectl create ns demo
-kubectl label ns demo istio-injection=enabled
-
-# 4. Deploy sample app
-kubectl apply -n demo -f <sample-manifest>
-
-# 5. Build/run the tool
-<build-or-run-command>
-
-# 6. Execute a sample debug command
-<tool-command> <args>
-
-# 7. Clean up
-kind delete cluster --name istio-debug
+make local-setup
 ```
 
-If the repo already ships its own examples/scripts, prefer documenting those rather than generic placeholders.
+### Run tests
+```bash
+make test
+```
+
+### Run integration tests
+```bash
+make test-integration
+```
+
+### Cleanup
+```bash
+make local-clean
+```
+```
+
+若 repo 尚未提供這些 make targets，README 應寫實際命令，不要先假設存在。
 
 ---
 
-### Suggested “Troubleshooting” section
-Include common failure cases that matter in real Istio usage:
+### 4. 常見錯誤排查
+建議加入以下類型：
 
-- **No sidecar injected**
-  - symptoms: tool sees workload but no mesh behavior
-- **Wrong Kubernetes context**
-  - symptoms: resource not found / empty output
-- **Istio not installed or not healthy**
-  - symptoms: missing CRDs or control plane pods
-- **Client/server version mismatch**
-  - symptoms: unexpected output or unsupported fields
-- **RBAC permissions insufficient**
-  - symptoms: forbidden errors reading resources
+- `context deadline exceeded`
+- `no such host`
+- `forbidden`
+- `no pods found`
+- `istioctl proxy-config` 相關輸出與工具結果不一致
+- cluster / CRD / namespace 不存在
+- sidecar 未注入導致結果不完整
 
 ---
 
-### Suggested “Compatibility” section
-This is high value for Istio tools.
+### 5. 版本相容性表
+對 Istio 類工具非常有幫助，建議簡單表格：
 
-Include a small table like:
-
-| Component | Supported/Tested |
+| Component | Tested Version |
 |---|---|
-| Kubernetes | x.y – x.z |
-| Istio | a.b – a.c |
-| Local cluster | kind / minikube |
-| OS | macOS / Linux / WSL |
-
-If support is unknown, say **“tested with”** instead of **“supported”**.
+| Kubernetes | 1.xx / 1.yy |
+| Istio | 1.xx / 1.yy |
+| kubectl | v1.xx |
+| istioctl | 1.xx |
 
 ---
 
-### Suggested “How to read the output” section
-For beginner usability, add a short explanation:
-- what the key fields mean
-- how to identify mismatch or misconfiguration
-- what to check next if output looks wrong
+# 6. Risks and rollback notes
 
-This is more useful than adding more raw command examples.
+## Risks
 
----
+### 1. README 與實際行為不一致
+最常見風險不是寫得不好，而是文件更新後與真實命令不同步。
 
-## 6. Risks and rollback notes
+**影響：**
+- 新手照做失敗
+- 產生更多 issue
+- 降低專案可信度
 
-### Risks
-
-#### 1) Documentation drift
-Biggest risk for this issue.
-If README includes commands not actually tested, it will confuse users more than help them.
-
-**Mitigation**
-- only document commands verified against the current repo state
-- prefer tested sample manifests/scripts
-- add version notes
+**緩解：**
+- 所有範例命令需實跑驗證
+- 若有 CI，加入 markdown link check / docs smoke test 更好
 
 ---
 
-#### 2) Version mismatch with Istio
-Istio behavior, output, and config shape can vary by version.
+### 2. 本地測試流程過度理想化
+如果 README 寫得像「一鍵成功」，但實際需要額外環境或權限，會造成挫折。
 
-**Production impact**
-- users may follow README but get different results on newer/older Istio
-- debug conclusions can be wrong if examples assume outdated behavior
+**影響：**
+- 文件看起來完整，但實際不可用
 
-**Mitigation**
-- document tested Istio versions
-- avoid overly version-specific screenshots/output unless clearly labeled
-
----
-
-#### 3) Overloading README
-If too much troubleshooting and detail are added, the README becomes hard to scan.
-
-**Mitigation**
-- keep README optimized for first success
-- move deep dives to `/docs`
+**緩解：**
+- 明確列 prerequisite
+- 區分「最小可跑」與「完整整合測試」
 
 ---
 
-#### 4) Local testing instructions may assume too much
-If local flow assumes Docker resources, network access, or preinstalled tools, new contributors may fail early.
+### 3. 文件過長，反而降低可讀性
+如果把所有細節都塞進 README，首頁會變得很重。
 
-**Mitigation**
-- explicitly list prerequisites
-- include cleanup
-- include expected runtime cost and resource expectations if relevant
+**影響：**
+- 新手看不到重點
+- 維護困難
 
----
-
-### Rollback notes
-
-Since this is a docs-only change, rollback is straightforward:
-- revert `README.md`
-- revert any added docs pages/scripts if they prove inaccurate
-- keep structural improvements in a separate commit if possible, so content-specific rollback is easy
-
-**Recommended rollback strategy**
-- split into small commits:
-  1. README restructure
-  2. quick-start content
-  3. local testing section
-  4. troubleshooting/compatibility additions
-
-This makes it easy to revert only the problematic part without losing all improvements.
+**緩解：**
+- README 保留 quick start 與導航
+- 詳細內容拆到 `docs/`
 
 ---
 
-If you want, I can also provide a **proposed README section template** or a **PR-ready markdown draft** for this issue.
+### 4. 版本相容性描述不精確
+Istio / Kubernetes 行為可能因版本改變。
+
+**影響：**
+- 使用者在不同版本上得到不同行為
+- 誤以為工具有 bug
+
+**緩解：**
+- 使用 “tested with” 而不是過度承諾 “fully supported”
+- 若未驗證某版本，明確標示
+
+---
+
+## Rollback notes
+
+這是文件調整，回滾成本低，建議採以下方式控制風險：
+
+### 建議回滾策略
+- 以單一 PR 提交 README / docs 修改
+- 若合併後發現內容錯誤，可直接 revert 該 PR
+- 若是部分章節有問題，可只回退：
+  - 本地測試章節
+  - Quick Start 命令
+  - 相容性表格
+
+### 建議保守做法
+- 第一版先補：
+  - 專案簡介
+  - Quick Start
+  - 本地測試基本流程
+- 第二版再補：
+  - 範例輸出
+  - troubleshooting
+  - 版本相容性矩陣
+
+這樣能降低一次改太多導致文件失真的風險。
+
+---
+
+如果你願意，我下一步可以直接幫你產出一份 **README 重構草案模板**，包含：
+- 新手版章節設計
+- Quick Start 範例
+- Local testing 章節內容
+- FAQ 範例文案
