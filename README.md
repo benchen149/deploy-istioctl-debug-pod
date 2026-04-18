@@ -55,7 +55,7 @@ Targets Overview (Quick Reference)
 | `make patch`        | Apply local patches (copy `debugtool` sources and replace `root.go`).                             |
 | `make build`        | Compile `istioctl` from source after cloning and applying patches.                                |
 | `make image`        | Build Docker image with the compiled binary.                                                      |
-| `make switch-user`  | Re-run the build as another Linux user (requires `USER=<username>`).                              |
+| `make switch-user`  | Re-run the build as another Linux user (requires `RUN_AS_USER=<username>`).                       |
 | `make mylab`        | Run a custom **mylab\_cli** build (requires `OWNER=<owner>`).                                     |
 | `make version`      | Print built image tag and cleanup temporary `bin/istioctl`.                                       |
 | `make clean`        | Remove build artifacts (`$(BUILD_DIR)` and `./bin`).                                              |

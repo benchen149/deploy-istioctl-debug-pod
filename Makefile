@@ -6,7 +6,7 @@ IMAGE_VERSION      ?= 1.24.0-custom-v1
 ISTIO_REPO         ?= https://github.com/istio/istio.git
 BUILD_DIR          ?= /tmp/build
 DOCKER_IMAGE       ?= istioctl-debug:$(IMAGE_VERSION)
-USER               ?=
+RUN_AS_USER        ?=
 OWNER              ?=
 
 .DEFAULT_GOAL := all
@@ -35,7 +35,7 @@ endif
 # ============================================================
 # Phony Targets
 # ============================================================
-.PHONY: help all check-root check-tmp clone patch build image \
+.PHONY: help all check-tmp clone patch build image \
         switch-user mylab version clean
 
 # ============================================================
@@ -43,25 +43,17 @@ endif
 # ============================================================
 help:
 	@echo "Makefile targets:"
-	@echo "  make all            Build docker image and show version"
-	@echo "  make clone          Clone/update Istio repo"
-	@echo "  make patch          Apply local patches"
-	@echo "  make build          Build istioctl binary"
-	@echo "  make image          Build docker image (default)"
-	@echo "  make switch-user    Re-run as another user (needs USER)"
-	@echo "  make mylab          Internal build via mylab_cli (needs OWNER)"
-	@echo "  make version        Show built image and cleanup binary"
-	@echo "  make clean          Remove build artifacts"
+	@echo "  make all              Build docker image and show version"
+	@echo "  make clone            Clone/update Istio repo"
+	@echo "  make patch            Apply local patches"
+	@echo "  make build            Build istioctl binary"
+	@echo "  make image            Build docker image (default)"
+	@echo "  make switch-user      Re-run as another user (needs RUN_AS_USER)"
+	@echo "  make mylab            Internal build via mylab_cli (needs OWNER)"
+	@echo "  make version          Show built image and cleanup binary"
+	@echo "  make clean            Remove build artifacts"
 	@echo ""
-	@echo "Variables you can override: ISTIO_CODE_VERSION, IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, USER, OWNER"
-
-# ============================================================
-# Root Check (提示，而不是直接阻斷)
-# ============================================================
-check-root:
-	@if [ "$$(id -u)" -ne 0 ]; then \
-	  echo "⚠️  Warning: not running as root. Some commands may fail (e.g., docker)."; \
-	fi
+	@echo "Variables you can override: ISTIO_CODE_VERSION, IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, RUN_AS_USER, OWNER"
 
 # ============================================================
 # Pre-checks
@@ -79,8 +71,8 @@ check-tmp:
 clone: check-tmp
 	@if [ -d $(BUILD_DIR)/istio/.git ]; then \
 	  echo "🔄 Updating Istio source at $(BUILD_DIR)/istio ..."; \
-          echo "    ↳ target version: $(ISTIO_CODE_VERSION)"; \
-          cd $(BUILD_DIR)/istio && \
+	  echo "    ↳ target version: $(ISTIO_CODE_VERSION)"; \
+	  cd $(BUILD_DIR)/istio && \
 	  git reset --hard HEAD && \
 	  git fetch --all && \
 	  echo "    ↳ switching to: $(ISTIO_CODE_VERSION)"; \
@@ -104,13 +96,13 @@ patch:
 	else \
 	  echo "ℹ️  No patches/debugtool found, skipping..."; \
 	fi
-	@if [ -f patches/root.go ]; then \
+	@if [ -f $(PATCH_ROOT_GO) ]; then \
 	  echo "📂 Replacing istioctl/cmd/root.go ..."; \
 	  echo "    ↳ source: $(PATCH_ROOT_GO)"; \
 	  echo "    ↳ target: $(BUILD_DIR)/istio/istioctl/cmd/root.go"; \
 	  cp $(PATCH_ROOT_GO) $(BUILD_DIR)/istio/istioctl/cmd/root.go; \
 	else \
-	  echo "ℹ️  No patches/root.go found, skipping..."; \
+	  echo "ℹ️  No $(PATCH_ROOT_GO) found, skipping..."; \
 	fi
 
 # ============================================================
@@ -128,22 +120,23 @@ build: clone patch
 # ============================================================
 all: image version
 
-image: build check-root
+image: build
 	@echo "🐳 Building docker image: $(DOCKER_IMAGE)"
 	docker build -t $(DOCKER_IMAGE) .
 
 switch-user:
-	@if [ -z "$(USER)" ]; then \
-	  echo "❌ USER not defined. Run with 'make switch-user USER=<username>'"; \
+	@if [ -z "$(RUN_AS_USER)" ]; then \
+	  echo "❌ RUN_AS_USER not defined. Run with 'make switch-user RUN_AS_USER=<username>'"; \
 	  exit 1; \
 	fi
-	sudo -u $(USER) bash -c "echo '🔄 Switching to user: $(USER)'; make mylab OWNER=$(USER)"
+	sudo -u $(RUN_AS_USER) bash -c "echo '🔄 Switching to user: $(RUN_AS_USER)'; make mylab OWNER=$(RUN_AS_USER)"
 
-mylab: build
+mylab:
 	@if [ -z "$(OWNER)" ]; then \
 	  echo "❌ OWNER not defined. Run with 'make mylab OWNER=<ownername>'"; \
 	  exit 1; \
 	fi
+	$(MAKE) build
 	@echo "🚀 Running internal build for $(OWNER)/$(DOCKER_IMAGE)"
 	/usr/local/mylab_cli/mylabbuild $(OWNER)/$(DOCKER_IMAGE)
 
