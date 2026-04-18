@@ -72,6 +72,9 @@ Below is an example workflow to build the custom `istioctl` image, load it into 
 make                 # Build docker image (default)
 make all             # Same as 'make'
 make mylab OWNER=me  # Internal mylab build
+
+# Build a specific version
+make ISTIO_CODE_VERSION=1.13.5 OUTPUT_IMAGE_VERSION=1.13.5-custom-v1
 ```
 
 ## 2. Load the image into Kind
