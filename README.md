@@ -79,17 +79,24 @@ make ISTIO_CODE_VERSION=1.13.5 OUTPUT_IMAGE_VERSION=1.13.5-custom-v1
 
 ## 2. Load the image into Kind
 ```bash
-kind load docker-image istioctl-debug:1.24.0-custom-v1 --name hub
+kind load docker-image istioctl-debug:<OUTPUT_IMAGE_VERSION> --name hub
 ```
 
 ## 3. Deploy the debug pod to Kubernetes
 ```bash
 kubectl apply -f manifests/clusterrole-istioctl-debug-limited-readonly.yml
 kubectl apply -f manifests/deploy.yaml
+
+# 確認 pod 已 Ready
+kubectl rollout status deploy/istioctl-debug -n default
 ```
 
 ## 4. Run istioctl debugtool inside the pod
 ```bash
+# 確認 binary 版本與 debugtool 是否正確載入
+kubectl exec -it deploy/istioctl-debug -n default -- istioctl version
+kubectl exec -it deploy/istioctl-debug -n default -- istioctl --help | grep debugtool
+
 # Exec into the pod
 kubectl exec -it deploy/istioctl-debug -n default -- \
   istioctl debugtool default <pod>
@@ -101,7 +108,9 @@ kubectl exec -it deploy/istioctl-debug -n default -- \
 
 ## 5. Run locally with Docker (no Kubernetes)
 ```bash
-docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
+docker run --rm -it --entrypoint /bin/sh istioctl-debug:<OUTPUT_IMAGE_VERSION>
+istioctl version
+istioctl --help | grep debugtool
 istioctl debugtool
 ```
 
