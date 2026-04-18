@@ -2,10 +2,10 @@
 # Variables (can be overridden via environment or CLI)
 # ============================================================
 ISTIO_CODE_VERSION ?= 1.24.0
-IMAGE_VERSION      ?= 1.24.0-custom-v1
+OUTPUT_IMAGE_VERSION      ?= 1.24.0-custom-v1
 ISTIO_REPO         ?= https://github.com/istio/istio.git
 BUILD_DIR          ?= /tmp/build
-DOCKER_IMAGE       ?= istioctl-debug:$(IMAGE_VERSION)
+DOCKER_IMAGE       ?= istioctl-debug:$(OUTPUT_IMAGE_VERSION)
 RUN_AS_USER        ?=
 OWNER              ?=
 
@@ -14,12 +14,12 @@ OWNER              ?=
 # ============================================================
 # Version Check
 # ============================================================
-IMAGE_BASE_VERSION := $(word 1,$(subst -, ,$(IMAGE_VERSION)))
+IMAGE_BASE_VERSION := $(word 1,$(subst -, ,$(OUTPUT_IMAGE_VERSION)))
 
 ifeq ($(ISTIO_CODE_VERSION),$(IMAGE_BASE_VERSION))
   # OK
 else
-  $(error ❌ Version mismatch: ISTIO_CODE_VERSION ($(ISTIO_CODE_VERSION)) != IMAGE_VERSION base ($(IMAGE_BASE_VERSION)))
+  $(error ❌ Version mismatch: ISTIO_CODE_VERSION ($(ISTIO_CODE_VERSION)) != OUTPUT_IMAGE_VERSION base ($(IMAGE_BASE_VERSION)))
 endif
 
 PATCH_ROOT_GO := patches/root.go
@@ -53,7 +53,7 @@ help:
 	@echo "  make version          Show built image and cleanup binary"
 	@echo "  make clean            Remove build artifacts"
 	@echo ""
-	@echo "Variables you can override: ISTIO_CODE_VERSION, IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, RUN_AS_USER, OWNER"
+	@echo "Variables you can override: ISTIO_CODE_VERSION, OUTPUT_IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, RUN_AS_USER, OWNER"
 
 # ============================================================
 # Pre-checks
