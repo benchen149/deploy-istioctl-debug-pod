@@ -141,6 +141,12 @@ istioctl debugtool
 # Load image into another Kind cluster
 kind load docker-image istioctl-debug:<OUTPUT_IMAGE_VERSION> --name <kind-cluster>
 
+# Check built images
+docker images | grep istioctl-debug
+
+# Remove old image
+docker rmi istioctl-debug:<OUTPUT_IMAGE_VERSION>
+
 # Run debugtool against a pod
 istioctl debugtool default <pod>
 istioctl debugtool default <pod> -o /tmp/debug-info
@@ -150,7 +156,9 @@ git restore .
 ```
 
 # Tips
-- Always ensure `ISTIO_CODE_VERSION` and `OUTPUT_IMAGE_VERSION` are aligned (the Makefile enforces this).
+- Always ensure `ISTIO_CODE_VERSION` and `OUTPUT_IMAGE_VERSION` are aligned (the Makefile enforces this). `OUTPUT_IMAGE_VERSION` format must be `{version}-{label}`, e.g. `1.24.0-custom-v1`.
 - Use `make help` to see available targets and quick usage hints.
 - For internal builds (`make mylab`), remember to set `OWNER=<your-org>`.
+- For non-root builds, use `make switch-user RUN_AS_USER=<username>`.
+- If build fails with `permission denied on /gocache`, run: `docker volume rm gocache`.
 - `GITHUB_TOKEN` is required for `/github-flow` with Contents / Issues / Pull requests read & write permissions.
