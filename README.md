@@ -49,7 +49,7 @@ Targets Overview (Quick Reference)
 
 | Target / Command    | Description                                                                                       |
 | ------------------- | ------------------------------------------------------------------------------------------------- |
-| **Version Check**   | Ensures `ISTIO_CODE_VERSION` matches the base version of `IMAGE_VERSION`; otherwise, build stops. |
+| **Version Check**   | Ensures `ISTIO_CODE_VERSION` matches the base version of `OUTPUT_IMAGE_VERSION`; otherwise, build stops. |
 | `make` / `make all` | Default: runs `image` (build Docker image) + `version` (print info & cleanup).                    |
 | `make clone`        | Clone or update the Istio repo at `$(BUILD_DIR)` and checkout `ISTIO_CODE_VERSION`.               |
 | `make patch`        | Apply local patches (copy `debugtool` sources and replace `root.go`).                             |
@@ -127,7 +127,7 @@ istioctl debugtool
 # Quick Reference
 ```bash
 # Load image into another Kind cluster
-kind load docker-image istioctl-debug:<IMAGE_VERSION> --name <kind-cluster>
+kind load docker-image istioctl-debug:<OUTPUT_IMAGE_VERSION> --name <kind-cluster>
 
 # Run debugtool against a pod
 istioctl debugtool default <pod>
@@ -138,7 +138,7 @@ git restore .
 ```
 
 # Tips
-- Always ensure `ISTIO_CODE_VERSION` and `IMAGE_VERSION` are aligned (the Makefile enforces this).
+- Always ensure `ISTIO_CODE_VERSION` and `OUTPUT_IMAGE_VERSION` are aligned (the Makefile enforces this).
 - Use `make help` to see available targets and quick usage hints.
 - For internal builds (`make mylab`), remember to set `OWNER=<your-org>`.
 - `GITHUB_TOKEN` is required for `/github-flow` with Contents / Issues / Pull requests read & write permissions.
