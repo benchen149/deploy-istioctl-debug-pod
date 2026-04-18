@@ -70,6 +70,21 @@ curl -s -X POST \
 - sync local base branch（`git pull origin $BASE_BRANCH`）
 - 詢問是否刪除 feature branch（local + remote）
 
+### Step 8：sync to main（選用）
+若 base branch 不是 `main`，詢問是否開一個 sync PR 將變更合併進 `main`。
+
+開 sync PR 時**必須**在 body 帶入本次相關的 `Closes #X`，讓 GitHub 在 merge 進 main 時自動關閉 issue：
+
+```bash
+curl -s -X POST \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/benchen149/deploy-istioctl-debug-pod/pulls \
+  -d "{\"title\": \"chore: sync $BASE_BRANCH changes to main\", \"body\": \"Closes #{issue-number}\", \"head\": \"$BASE_BRANCH\", \"base\": \"main\"}"
+```
+
+> **原因**：GitHub 的 `Closes #X` 只在 PR merge 進 default branch（`main`）時觸發，feature branch → `1-feat-new` 不會自動關閉 issue。
+
 ---
 
 ## 模式二：關閉 PR / Issue
