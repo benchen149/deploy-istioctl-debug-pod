@@ -13,12 +13,12 @@ Before using this project, ensure you have the following tools installed:
 - **kind** (optional, for local multi-cluster testing)
 - **git** (for fetching Istio source)
 
-```
+```bash
 [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
 wget "https://github.com/istio/istio/releases/download/1.24.0/istio-1.24.0-linux-amd64.tar.gz" -O - | tar -xz
 wget -qO- https://github.com/open-cluster-management-io/clusteradm/releases/latest/download/clusteradm_linux_amd64.tar.gz | sudo tar -xvz -C /usr/local/bin/
-
 ```
+
 ---
 
 # Directory Structure
@@ -27,16 +27,18 @@ deploy-istioctl-debug-pod/
 ├── bin                          # Compiled istioctl binary (output after build)
 ├── Dockerfile                   # Dockerfile for packaging istioctl into a debug image
 ├── Makefile                     # Build automation (clone, patch, build, image, version, clean)
-├── manifests                    # Kubernetes manifests for deploying istioctl-debug pod│  
+├── manifests                    # Kubernetes manifests for deploying istioctl-debug pod
 │   ├── deploy.yaml              # Current deployment manifest for istioctl-debug pod
-│   └── rbac-istioctl-min-read.yaml # Minimal RBAC for read-only istioctl usage
+│   └── clusterrole-istioctl-debug-limited-readonly.yml  # Minimal RBAC for read-only istioctl usage
 ├── patches                      # Custom patches copied into Istio source before build
 │   ├── debugtool                # Custom debugtool command (to extend istioctl CLI)
 │   │   └── debugtool.go
 │   └── root.go                  # Patched root.go to register the debugtool command
-├── README.md                    # Project documentation and usage instructions
-└── src                          # Source code directory for additional tooling/modules
+├── .claude/commands
+│   └── github-flow.md           # Claude slash command for GitHub flow automation
+└── README.md                    # Project documentation and usage instructions
 ```
+
 ---
 
 # Build Image Workflow
@@ -66,26 +68,25 @@ Targets Overview (Quick Reference)
 Below is an example workflow to build the custom `istioctl` image, load it into a Kind cluster, and run the `debugtool` command.
 
 ## 1. Build the image
-```
+```bash
 make                 # Build docker image (default)
 make all             # Same as 'make'
 make mylab OWNER=me  # Internal mylab build
-
 ```
 
 ## 2. Load the image into Kind
-```
+```bash
 kind load docker-image istioctl-debug:1.24.0-custom-v1 --name hub
 ```
 
 ## 3. Deploy the debug pod to Kubernetes
-```
-kubectl apply -f rbac-istioctl-min-read.yaml
+```bash
+kubectl apply -f manifests/clusterrole-istioctl-debug-limited-readonly.yml
 kubectl apply -f manifests/deploy.yaml
 ```
 
 ## 4. Run istioctl debugtool inside the pod
-```
+```bash
 # Exec into the pod
 kubectl exec -it deploy/istioctl-debug -n default -- \
   istioctl debugtool default <pod>
@@ -93,20 +94,38 @@ kubectl exec -it deploy/istioctl-debug -n default -- \
 # Save debug info to a file
 kubectl exec -it deploy/istioctl-debug -n default -- \
   istioctl debugtool default <pod> -o /tmp/debug-info
-
 ```
 
 ## 5. Run locally with Docker (no Kubernetes)
-```
+```bash
 docker run --rm -it --entrypoint /bin/sh istioctl-debug:1.24.0-custom-v1
 istioctl debugtool
-
 ```
 
 ---
 
-# Others
-```
+# Branch Strategy
+
+| Branch | 用途 |
+| ------ | ---- |
+| `main` | 穩定版本，只接受來自 `1-feat-new-branch-for-develop-and-test` 的 PR merge |
+| `1-feat-new-branch-for-develop-and-test` | 主要開發 branch，功能開發從此 branch 切出 |
+
+---
+
+# GitHub Flow (`/github-flow`)
+
+本專案整合 Claude slash command，執行 `/github-flow` 可引導完成：
+
+- **模式一**：issue → branch → PR → merge 完整開發流程
+- **模式二**：批次關閉指定 PR / Issue
+
+詳見 [`.claude/commands/github-flow.md`](.claude/commands/github-flow.md)。
+
+---
+
+# Quick Reference
+```bash
 # Load image into another Kind cluster
 kind load docker-image istioctl-debug:<IMAGE_VERSION> --name <kind-cluster>
 
@@ -114,16 +133,12 @@ kind load docker-image istioctl-debug:<IMAGE_VERSION> --name <kind-cluster>
 istioctl debugtool default <pod>
 istioctl debugtool default <pod> -o /tmp/debug-info
 
-# all rollback 
+# Rollback all local changes
 git restore .
-
 ```
 
 # Tips
-- Always ensure ISTIO_CODE_VERSION and IMAGE_VERSION are aligned (the Makefile enforces this).
-
-- Use make help to see available targets and quick usage hints.
-
-- For internal builds (make mylab), remember to set OWNER=<your-dockerhub-org>.
-
-- AI-assisted development and optimization were applied to this project using GPT technologies.
+- Always ensure `ISTIO_CODE_VERSION` and `IMAGE_VERSION` are aligned (the Makefile enforces this).
+- Use `make help` to see available targets and quick usage hints.
+- For internal builds (`make mylab`), remember to set `OWNER=<your-org>`.
+- `GITHUB_TOKEN` is required for `/github-flow` with Contents / Issues / Pull requests read & write permissions.
