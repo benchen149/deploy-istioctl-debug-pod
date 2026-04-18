@@ -19,7 +19,7 @@
 - **Issue 標題**（例如：`feat: add xxx`）
 - **Issue 描述**（問題背景、預計異動）
 - **Branch slug**（例如：`add-xxx`，會自動加上 issue 編號變成 `{number}-add-xxx`）
-- **目標 base branch**（預設 `1-feat-new-branch-for-develop-and-test`）
+- **目標 base branch**（預設 `1-feat-new-branch-for-develop-and-test`）— feature branch 從此 branch 切出，PR 也 merge 回此 branch
 
 ### Step 2：開 GitHub Issue
 使用 GitHub API 建立 issue，取得 issue 編號。
