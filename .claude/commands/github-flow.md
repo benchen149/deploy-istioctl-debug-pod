@@ -32,7 +32,9 @@ curl -s -X POST \
   -d "{\"title\": \"$TITLE\", \"body\": \"$BODY\"}"
 ```
 
-### Step 3：建立並切換 branch
+### Step 3：建立並切換 branch（自動執行，不需使用者確認）
+取得 issue 編號後立即執行，無需等待使用者確認。
+
 ```bash
 git checkout $BASE_BRANCH
 git pull origin $BASE_BRANCH
@@ -68,7 +70,13 @@ curl -s -X POST \
 詢問使用者是否直接 merge，若是則：
 - merge PR（`merge_method: merge`）
 - sync local base branch（`git pull origin $BASE_BRANCH`）
-- 詢問是否刪除 feature branch（local + remote）
+- 自動刪除 feature branch（local + remote），無需詢問使用者
+- **絕對不可刪除** `1-feat-new-branch-for-develop-and-test`、`main` 等長期 branch，只刪除格式為 `{issue-number}-$SLUG` 的 feature branch
+
+```bash
+git branch -d {issue-number}-$SLUG
+git push origin --delete {issue-number}-$SLUG
+```
 
 ### Step 8：sync to main（選用）
 若 base branch 不是 `main`，詢問是否開一個 sync PR 將變更合併進 `main`。
@@ -116,4 +124,4 @@ curl -s -X PATCH \
 - `GITHUB_TOKEN` 需要有 Contents / Issues / Pull requests 的 Read and write 權限
 - 若環境沒有 `GITHUB_TOKEN`，流程開始前會提示設定
 - base branch 預設為 `1-feat-new-branch-for-develop-and-test`，若要 merge 到 `main` 請在 Step 1 指定
-- feature branch merge 後是否刪除由使用者決定，長期 branch 不刪除
+- feature branch merge 後自動刪除（local + remote），`1-feat-new-branch-for-develop-and-test`、`main` 等長期 branch 不在自動刪除範圍內
