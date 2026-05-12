@@ -15,7 +15,7 @@ Before using this project, ensure you have the following tools installed:
 
 ```bash
 [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
-wget "https://github.com/istio/istio/releases/download/1.24.0/istio-1.24.0-linux-amd64.tar.gz" -O - | tar -xz
+wget "https://github.com/istio/istio/releases/download/1.29.2/istio-1.29.2-linux-amd64.tar.gz" -O - | tar -xz
 wget -qO- https://github.com/open-cluster-management-io/clusteradm/releases/latest/download/clusteradm_linux_amd64.tar.gz | sudo tar -xvz -C /usr/local/bin/
 ```
 
@@ -39,6 +39,19 @@ deploy-istioctl-debug-pod/
 │   └── setup-github-ssh.md      # Claude slash command for SSH and gh CLI initial setup
 └── README.md                    # Project documentation and usage instructions
 ```
+
+---
+
+# Supported Versions
+
+| Istio Version | Build Tested | `root.go` Patch | `debugtool` Patch | Notes |
+| ------------- | ------------ | --------------- | ----------------- | ----- |
+| **1.29.2**    | ✅           | ✅ 相容         | ✅ 相容           | 目前預設版本 |
+| 1.24.0        | ✅           | ✅ 相容         | ✅ 相容           | 與 1.29.2 root.go 完全相同 |
+| 1.13.5        | ✅           | 使用 `patches/root.go-1.13.5` | ✅ 相容 | 需指定特定 root.go patch |
+
+> `patches/root.go` 與 `patches/debugtool/debugtool.go` 對 1.24.x 和 1.29.x 完全相容，
+> 因為兩版本的 `root.go` 結構相同，且 `debugtool` 不依賴任何 Istio SDK，只使用 stdlib 與 cobra。
 
 ---
 
