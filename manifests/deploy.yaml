@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: istioctl-debug-1-24-0
+  name: istioctl-debug-1-29-2
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,7 @@ spec:
       serviceAccountName: istioctl-debug
       containers:
       - name: istioctl
-        image: istioctl-debug:1.24.0-custom-v1
+        image: istioctl-debug:1.29.2-custom-v1
         command: ["/bin/bash"]
         args: ["-c", "sleep infinity"]
 
