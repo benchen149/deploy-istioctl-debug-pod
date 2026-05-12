@@ -35,7 +35,8 @@ deploy-istioctl-debug-pod/
 │   │   └── debugtool.go
 │   └── root.go                  # Patched root.go to register the debugtool command
 ├── .claude/commands
-│   └── github-flow.md           # Claude slash command for GitHub flow automation
+│   ├── github-flow.md           # Claude slash command for GitHub flow automation
+│   └── setup-github-ssh.md      # Claude slash command for SSH and gh CLI initial setup
 └── README.md                    # Project documentation and usage instructions
 ```
 
@@ -125,14 +126,22 @@ istioctl debugtool
 
 ---
 
-# GitHub Flow (`/github-flow`)
+# Claude Commands
 
-本專案整合 Claude slash command，執行 `/github-flow` 可引導完成：
+本專案提供 Claude Code slash commands，統一開發環境設定與開發流程。
 
-- **模式一**：issue → branch → PR → merge 完整開發流程
-- **模式二**：批次關閉指定 PR / Issue
+| Command | 說明 |
+| ------- | ---- |
+| `/setup-github-ssh` | 新環境一次性設定：SSH key 產生、GitHub 綁定、gh CLI 登入（含安全規範） |
+| `/github-flow` | 完整開發流程：issue → branch → PR → merge，或批次關閉 PR / Issue |
 
-詳見 [`.claude/commands/github-flow.md`](.claude/commands/github-flow.md)。
+**建議順序（新環境第一次）：**
+```
+1. /setup-github-ssh   # 完成 SSH + gh CLI 認證設定
+2. /github-flow        # 開始功能開發
+```
+
+詳見 [`.claude/commands/`](.claude/commands/) 目錄下的對應 `.md` 檔案。
 
 ---
 
@@ -161,4 +170,4 @@ git restore .
 - For internal builds (`make mylab`), remember to set `OWNER=<your-org>`.
 - For non-root builds, use `make switch-user RUN_AS_USER=<username>`.
 - If build fails with `permission denied on /gocache`, run: `docker volume rm gocache`.
-- `GITHUB_TOKEN` is required for `/github-flow` with Contents / Issues / Pull requests read & write permissions.
+- `/github-flow` requires `gh` CLI login（執行 `/setup-github-ssh` 完成初始設定）with Contents / Issues / Pull requests read & write permissions.
