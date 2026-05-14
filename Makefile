@@ -1,8 +1,9 @@
 # ============================================================
 # Variables (can be overridden via environment or CLI)
 # ============================================================
-ISTIO_CODE_VERSION ?= 1.29.2
-OUTPUT_IMAGE_VERSION      ?= 1.29.2-custom-v1
+ISTIO_CODE_VERSION   ?= 1.29.2
+version              ?= v2
+OUTPUT_IMAGE_VERSION ?= $(ISTIO_CODE_VERSION)-custom-$(version)
 ISTIO_REPO         ?= https://github.com/istio/istio.git
 BUILD_DIR          ?= /tmp/build
 DOCKER_IMAGE       ?= istioctl-debug:$(OUTPUT_IMAGE_VERSION)
@@ -54,7 +55,7 @@ help:
 	@echo "  make version          Show built image and cleanup binary"
 	@echo "  make clean            Remove build artifacts"
 	@echo ""
-	@echo "Variables you can override: ISTIO_CODE_VERSION, OUTPUT_IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, RUN_AS_USER, OWNER, EXTRA_FILES_DIR"
+	@echo "Variables you can override: ISTIO_CODE_VERSION, version, OUTPUT_IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, RUN_AS_USER, OWNER, EXTRA_FILES_DIR"
 
 # ============================================================
 # Pre-checks
