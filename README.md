@@ -69,6 +69,7 @@ Targets Overview (Quick Reference)
 | `make patch`        | Apply local patches (copy `debugtool` sources and replace `root.go`).                             |
 | `make build`        | Compile `istioctl` from source after cloning and applying patches.                                |
 | `make image`        | Build Docker image with the compiled binary. Optionally bundle extra files via `EXTRA_FILES_DIR`. |
+| `make image EXTRA_FILES_DIR=<file\|dir>` | Bundle additional files (single file or directory) into `/usr/local/bin/` in the image. |
 | `make switch-user`  | Re-run the build as another Linux user (requires `RUN_AS_USER=<username>`).                       |
 | `make mylab`        | Run a custom **mylab\_cli** build (requires `OWNER=<owner>`).                                     |
 | `make version`      | Print built image tag and cleanup temporary `bin/istioctl`.                                       |
@@ -90,28 +91,6 @@ make mylab OWNER=me  # Internal mylab build
 # Build a specific version
 make ISTIO_CODE_VERSION=1.13.5 OUTPUT_IMAGE_VERSION=1.13.5-custom-v1
 ```
-
-## 1a. Bundle extra files into the image (optional)
-
-Use `EXTRA_FILES_DIR` to include additional tools or files in the image at build time.
-The files are copied to `/usr/local/bin/` inside the container.
-
-`EXTRA_FILES_DIR` accepts either a **single file** or a **directory**:
-
-```bash
-# Single file
-make image EXTRA_FILES_DIR=/path/to/istio-1.29.2-linux-amd64.tar.gz
-
-# Directory (all contents are bundled)
-mkdir -p extra/
-cp /path/to/tool extra/
-make image EXTRA_FILES_DIR=extra/
-
-# Combined with mylab
-make mylab OWNER=me EXTRA_FILES_DIR=extra/
-```
-
-> Files in `bin/extra/` are automatically cleaned up by `make version` and `make clean`.
 
 ## 2. Load the image into Kind
 ```bash
