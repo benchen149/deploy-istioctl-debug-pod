@@ -1,0 +1,5 @@
+# Inherit .gitignore rules, then explicitly include the compiled binaries
+# and extra files needed by the Dockerfile's COPY steps.
+#!include:.gitignore
+!bin/istioctl
+!bin/extra/

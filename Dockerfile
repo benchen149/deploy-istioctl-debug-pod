@@ -5,6 +5,7 @@ RUN apk add --no-cache bash curl ca-certificates
 
 WORKDIR /usr/local/bin
 COPY bin/istioctl .
+COPY bin/extra/ .
 RUN chmod +x istioctl
 
 # 預設進入 bash，方便互動
