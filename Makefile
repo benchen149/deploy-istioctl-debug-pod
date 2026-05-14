@@ -125,8 +125,15 @@ image: build
 	@echo "🐳 Building docker image: $(DOCKER_IMAGE)"
 	mkdir -p bin/extra
 	@if [ -n "$(EXTRA_FILES_DIR)" ]; then \
-	  echo "📦 Staging extra files from: $(EXTRA_FILES_DIR)"; \
-	  cp -r $(EXTRA_FILES_DIR)/. bin/extra/; \
+	  if [ -f "$(EXTRA_FILES_DIR)" ]; then \
+	    echo "📦 Staging extra file: $(EXTRA_FILES_DIR)"; \
+	    cp "$(EXTRA_FILES_DIR)" bin/extra/; \
+	  elif [ -d "$(EXTRA_FILES_DIR)" ]; then \
+	    echo "📦 Staging extra files from dir: $(EXTRA_FILES_DIR)"; \
+	    cp -r "$(EXTRA_FILES_DIR)/." bin/extra/; \
+	  else \
+	    echo "❌ EXTRA_FILES_DIR not found: $(EXTRA_FILES_DIR)"; exit 1; \
+	  fi \
 	fi
 	docker build -t $(DOCKER_IMAGE) .
 
