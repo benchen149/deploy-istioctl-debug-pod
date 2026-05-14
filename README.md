@@ -65,6 +65,7 @@ Targets Overview (Quick Reference)
 | ------------------- | ------------------------------------------------------------------------------------------------- |
 | **Version Check**   | Ensures `ISTIO_CODE_VERSION` matches the base version of `OUTPUT_IMAGE_VERSION`; otherwise, build stops. |
 | `make` / `make all` | Default: runs `image` (build Docker image) + `version` (print info & cleanup).                    |
+| `make version=vN`   | Override image label; produces `istioctl-debug:$(ISTIO_CODE_VERSION)-custom-vN` (default: `v2`). |
 | `make clone`        | Clone or update the Istio repo at `$(BUILD_DIR)` and checkout `ISTIO_CODE_VERSION`.               |
 | `make patch`        | Apply local patches (copy `debugtool` sources and replace `root.go`).                             |
 | `make build`        | Compile `istioctl` from source after cloning and applying patches.                                |
@@ -84,12 +85,13 @@ Below is an example workflow to build the custom `istioctl` image, load it into 
 
 ## 1. Build the image
 ```bash
-make                 # Build docker image (default)
-make all             # Same as 'make'
-make mylab OWNER=me  # Internal mylab build
+make                          # Build docker image (default → 1.29.2-custom-v2)
+make all                      # Same as 'make'
+make version=v3               # → istioctl-debug:1.29.2-custom-v3
+make mylab OWNER=me version=v3  # Internal mylab build with label v3
 
-# Build a specific version
-make ISTIO_CODE_VERSION=1.13.5 OUTPUT_IMAGE_VERSION=1.13.5-custom-v1
+# Build a specific Istio version
+make ISTIO_CODE_VERSION=1.13.5 version=v1
 ```
 
 ## 2. Load the image into Kind
