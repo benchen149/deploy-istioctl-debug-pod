@@ -36,7 +36,7 @@ endif
 # ============================================================
 # Phony Targets
 # ============================================================
-.PHONY: help all check-tmp clone patch build image \
+.PHONY: help all check-tmp clone patch build stage-extra image \
         switch-user mylab version clean
 
 # ============================================================
@@ -121,8 +121,7 @@ build: clone patch
 # ============================================================
 all: image version
 
-image: build
-	@echo "🐳 Building docker image: $(DOCKER_IMAGE)"
+stage-extra:
 	mkdir -p bin/extra
 	@if [ -n "$(EXTRA_FILES_DIR)" ]; then \
 	  if [ -f "$(EXTRA_FILES_DIR)" ]; then \
@@ -135,6 +134,9 @@ image: build
 	    echo "❌ EXTRA_FILES_DIR not found: $(EXTRA_FILES_DIR)"; exit 1; \
 	  fi \
 	fi
+
+image: build stage-extra
+	@echo "🐳 Building docker image: $(DOCKER_IMAGE)"
 	docker build -t $(DOCKER_IMAGE) .
 
 switch-user:
@@ -149,7 +151,7 @@ mylab:
 	  echo "❌ OWNER not defined. Run with 'make mylab OWNER=<ownername>'"; \
 	  exit 1; \
 	fi
-	$(MAKE) build
+	$(MAKE) build stage-extra
 	@echo "🚀 Running internal build for $(OWNER)/$(DOCKER_IMAGE)"
 	/usr/local/mylab_cli/mylabbuild $(OWNER)/$(DOCKER_IMAGE)
 
