@@ -68,7 +68,8 @@ Targets Overview (Quick Reference)
 | `make clone`        | Clone or update the Istio repo at `$(BUILD_DIR)` and checkout `ISTIO_CODE_VERSION`.               |
 | `make patch`        | Apply local patches (copy `debugtool` sources and replace `root.go`).                             |
 | `make build`        | Compile `istioctl` from source after cloning and applying patches.                                |
-| `make image`        | Build Docker image with the compiled binary.                                                      |
+| `make image`        | Build Docker image with the compiled binary. Optionally bundle extra files via `EXTRA_FILES_DIR`. |
+| `make image EXTRA_FILES_DIR=<file\|dir>` | Bundle additional files (single file or directory) into `/usr/local/bin/` in the image. |
 | `make switch-user`  | Re-run the build as another Linux user (requires `RUN_AS_USER=<username>`).                       |
 | `make mylab`        | Run a custom **mylab\_cli** build (requires `OWNER=<owner>`).                                     |
 | `make version`      | Print built image tag and cleanup temporary `bin/istioctl`.                                       |
@@ -183,4 +184,5 @@ git restore .
 - For internal builds (`make mylab`), remember to set `OWNER=<your-org>`.
 - For non-root builds, use `make switch-user RUN_AS_USER=<username>`.
 - If build fails with `permission denied on /gocache`, run: `docker volume rm gocache`.
+- To include extra tools in the image, use `make image EXTRA_FILES_DIR=<file-or-dir>`. Files land in `/usr/local/bin/` inside the container.
 - `/github-flow` requires `gh` CLI login（執行 `/setup-github-ssh` 完成初始設定）with Contents / Issues / Pull requests read & write permissions.

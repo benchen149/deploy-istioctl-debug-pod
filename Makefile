@@ -8,6 +8,7 @@ BUILD_DIR          ?= /tmp/build
 DOCKER_IMAGE       ?= istioctl-debug:$(OUTPUT_IMAGE_VERSION)
 RUN_AS_USER        ?=
 OWNER              ?=
+EXTRA_FILES_DIR    ?=
 
 .DEFAULT_GOAL := all
 
@@ -53,7 +54,7 @@ help:
 	@echo "  make version          Show built image and cleanup binary"
 	@echo "  make clean            Remove build artifacts"
 	@echo ""
-	@echo "Variables you can override: ISTIO_CODE_VERSION, OUTPUT_IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, RUN_AS_USER, OWNER"
+	@echo "Variables you can override: ISTIO_CODE_VERSION, OUTPUT_IMAGE_VERSION, BUILD_DIR, DOCKER_IMAGE, RUN_AS_USER, OWNER, EXTRA_FILES_DIR"
 
 # ============================================================
 # Pre-checks
@@ -122,6 +123,18 @@ all: image version
 
 image: build
 	@echo "🐳 Building docker image: $(DOCKER_IMAGE)"
+	mkdir -p bin/extra
+	@if [ -n "$(EXTRA_FILES_DIR)" ]; then \
+	  if [ -f "$(EXTRA_FILES_DIR)" ]; then \
+	    echo "📦 Staging extra file: $(EXTRA_FILES_DIR)"; \
+	    cp "$(EXTRA_FILES_DIR)" bin/extra/; \
+	  elif [ -d "$(EXTRA_FILES_DIR)" ]; then \
+	    echo "📦 Staging extra files from dir: $(EXTRA_FILES_DIR)"; \
+	    cp -r "$(EXTRA_FILES_DIR)/." bin/extra/; \
+	  else \
+	    echo "❌ EXTRA_FILES_DIR not found: $(EXTRA_FILES_DIR)"; exit 1; \
+	  fi \
+	fi
 	docker build -t $(DOCKER_IMAGE) .
 
 switch-user:
@@ -145,8 +158,9 @@ mylab:
 # ============================================================
 version:
 	@echo "✅ Built image: $(DOCKER_IMAGE)"
-	@echo "🧹 Cleanup local bin/istioctl ..."
+	@echo "🧹 Cleanup local bin/ ..."
 	rm -f bin/istioctl
+	rm -rf bin/extra
 
 clean:
 	@echo "🧹 Cleaning up build dir and bin ..."
