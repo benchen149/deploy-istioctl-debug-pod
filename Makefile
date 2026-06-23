@@ -1,7 +1,7 @@
 # ============================================================
 # Variables (can be overridden via environment or CLI)
 # ============================================================
-ISTIO_CODE_VERSION   ?= 1.29.2
+ISTIO_CODE_VERSION   ?= 1.29.4
 version              ?= v2
 OUTPUT_IMAGE_VERSION ?= $(ISTIO_CODE_VERSION)-custom-$(version)
 ISTIO_REPO         ?= https://github.com/istio/istio.git
