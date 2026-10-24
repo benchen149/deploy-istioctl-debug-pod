@@ -38,7 +38,6 @@ deploy-istioctl-debug-pod/
 │   ├── root.go                  # Patched root.go to register the debugtool command
 │   └── root.go-1.13.5           # root.go patch specific to Istio 1.13.5
 ├── .claude/commands
-│   ├── github-flow.md           # Claude slash command for GitHub flow automation
 │   └── setup-github-ssh.md      # Claude slash command for SSH and gh CLI initial setup
 └── README.md                    # Project documentation and usage instructions
 ```
