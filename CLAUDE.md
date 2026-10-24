@@ -11,7 +11,7 @@
 所有功能開發皆走 **GitHub Flow**：
 
 ```
-issue → feature branch → commit → PR → merge to 1-feat-new-branch-for-develop-and-test → sync PR → merge to main
+issue → feature branch → commit → PR → merge to develop → sync PR → merge to main
 ```
 
 使用 `/github-flow` slash command 自動引導整個流程。
@@ -20,11 +20,11 @@ issue → feature branch → commit → PR → merge to 1-feat-new-branch-for-de
 
 | Branch | 用途 |
 |--------|------|
-| `main` | 穩定版本，只接受來自 `1-feat-new-branch-for-develop-and-test` 的 PR merge |
-| `1-feat-new-branch-for-develop-and-test` | 主要開發 branch，feature branch 從此切出、PR 也 merge 回此 |
+| `main` | 穩定版本，只接受來自 `develop` 的 PR merge |
+| `develop` | 主要開發 branch，feature branch 從此切出、PR 也 merge 回此 |
 | `{issue-number}-{slug}` | Feature branch，merge 後自動刪除 |
 
-**絕對不可刪除 `main` 與 `1-feat-new-branch-for-develop-and-test`。**
+**絕對不可刪除 `main` 與 `develop`。**
 
 ---
 
@@ -103,4 +103,4 @@ make ISTIO_CODE_VERSION=1.29.2 OUTPUT_IMAGE_VERSION=1.29.2-custom-v1
 - known_hosts 加入前必須對比 GitHub 官方 fingerprint
 - `gh` CLI token 不可提交至任何 repo 或 dotfiles
 - `~/.ssh/id_ed25519` 不可複製到他處或提交至任何 repo
-- Feature branch merge 後自動刪除，`main`、`1-feat-new-branch-for-develop-and-test` 永遠保留
+- Feature branch merge 後自動刪除，`main`、`develop` 永遠保留

@@ -138,8 +138,8 @@ istioctl debugtool
 
 | Branch | 用途 |
 | ------ | ---- |
-| `main` | 穩定版本，只接受來自 `1-feat-new-branch-for-develop-and-test` 的 PR merge |
-| `1-feat-new-branch-for-develop-and-test` | 主要開發 branch，功能開發從此 branch 切出 |
+| `main` | 穩定版本，只接受來自 `develop` 的 PR merge |
+| `develop` | 主要開發 branch，功能開發從此 branch 切出 |
 
 ---
 
